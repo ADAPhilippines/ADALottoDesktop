@@ -36,7 +36,7 @@ namespace ADALotto.Views
 			// 		" ",
 			// 		"run",
 			// 		"--topology", $"\"{binPath}\\topology.yaml\"",
-			// 		"--database-path", "\"C:\\Users\\clark\\AppData\\Roaming\\Daedalus Mainnet\\chain\"",
+			// 		"--database-path", "\"C:\\Users\\asd\\AppData\\Roaming\\Daedalus Mainnet\\chain\"",
 			// 		"--config", $"\"{binPath}\\config.yaml\"",
 			// 		"--port", "3000",
 			// 		"--socket-path=\"\\\\.\\pipe\\cardano-lotto\""
