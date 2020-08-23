@@ -103,7 +103,7 @@ namespace ADALotto.ViewModels
 		private async void OnOutputDataReceived(object sender, DataReceivedEventArgs e)
 		{
 			Console.WriteLine(e.Data);
-			if (e.Data.Contains("block replay progress (%)"))
+			if (e.Data != null && e.Data.Contains("block replay progress (%)"))
 			{
 				NodeStatus = CardanoNodeStatus.BlockReplay;
 				var dataSplt = e.Data.Split("=");
