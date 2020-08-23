@@ -17,5 +17,6 @@
     <PackageReference Include="Avalonia" Version="0.9.12" />
     <PackageReference Include="Avalonia.Desktop" Version="0.9.12" />
     <PackageReference Include="Avalonia.ReactiveUI" Version="0.9.12" />
+    <PackageReference Include="securifybv.ShellLink" Version="0.1.0" />
   </ItemGroup>
 </Project>

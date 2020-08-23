@@ -10,6 +10,13 @@ namespace ADALotto.Views
 {
 	public class MainWindow : Window
 	{
+		public MainWindowViewModel ViewModel 
+		{
+			get
+			{
+				return this.DataContext as MainWindowViewModel;
+			}
+		}
 		public MainWindow()
 		{
 			InitializeComponent();
@@ -22,42 +29,22 @@ namespace ADALotto.Views
 		private void OnOpened(object sender, EventArgs e)
 		{
 			GenerateLottoBoxes();
+			ViewModel.InitializeCardanoNode();
 		}
 
 		private void InitializeComponent()
 		{
 			AvaloniaXamlLoader.Load(this);
-			// var binPath = @"D:\Program Files\Daedalus Mainnet";
-			// Process p = new Process();
-			// p.StartInfo = new ProcessStartInfo
-			// {
-			// 	FileName = $"{binPath}\\cardano-node.exe",
-			// 	Arguments= string.Join(
-			// 		" ",
-			// 		"run",
-			// 		"--topology", $"\"{binPath}\\topology.yaml\"",
-			// 		"--database-path", "\"C:\\Users\\asd\\AppData\\Roaming\\Daedalus Mainnet\\chain\"",
-			// 		"--config", $"\"{binPath}\\config.yaml\"",
-			// 		"--port", "3000",
-			// 		"--socket-path=\"\\\\.\\pipe\\cardano-lotto\""
-			// 	),
-			// 	UseShellExecute = false,
-			// 	RedirectStandardOutput = true
-			// };
-			// p.OutputDataReceived += OnOutputDataReceived;
-			// p.Start();
-			// p.BeginOutputReadLine();
-			// p.WaitForExit();
-			// p.Close();
 		}
 
+		/// <summary>
+		/// Code to Generate Lotto Boxes Dynamically
+		/// </summary>
 		private void GenerateLottoBoxes()
 		{
 			var panelLottoNumbers = this.FindControl<StackPanel>("panelLottoNumbers");
-			var viewModel = DataContext as MainWindowViewModel;
 			panelLottoNumbers.Children.Clear();
-
-			for (int x = 0; x < viewModel.Digits; x++)
+			for (int x = 0; x < ViewModel.Digits; x++)
 			{
 				var newLottoBox = new TextBox();
 				newLottoBox.Watermark = "00";
@@ -68,9 +55,10 @@ namespace ADALotto.Views
 			}
 		}
 
-		private void OnOutputDataReceived(object sender, DataReceivedEventArgs e)
+		protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
 		{
-			Console.WriteLine(e.Data);
+			ViewModel.StopNode();
+			base.OnClosing(e);
 		}
 	}
 }

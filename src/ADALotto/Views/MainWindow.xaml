@@ -1,15 +1,49 @@
-<Window xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:vm="clr-namespace:ADALotto.ViewModels;assembly=ADALotto" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450" x:Class="ADALotto.Views.MainWindow" Icon="/Assets/avalonia-logo.ico" Title="ADALotto" Width="1000" Height="600" MaxWidth="1000" MaxHeight="600" CanResize="false" WindowStartupLocation="CenterScreen">
+<Window 
+	xmlns="https://github.com/avaloniaui" 
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:vm="clr-namespace:ADALotto.ViewModels;assembly=ADALotto"
+	xmlns:converters="clr-namespace:ADALotto.Converters;assembly=ADALotto"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	mc:Ignorable="d"
+	d:DesignWidth="400"
+	d:DesignHeight="450"
+	x:Class="ADALotto.Views.MainWindow"
+	Icon="/Assets/avalonia-logo.ico"
+	Title="ADALotto"
+	Width="1000" Height="600" MaxWidth="1000" MaxHeight="600" CanResize="false" WindowStartupLocation="CenterScreen">
+
 	<Design.DataContext>
 		<vm:MainWindowViewModel/>
 	</Design.DataContext>
+
+	<Window.Resources>
+		<converters:NodeStatusConverter x:Key="NodeStatusConverter"/>
+	</Window.Resources>
+
 	<DockPanel>
 		<Grid ShowGridLines="true" ColumnDefinitions="1*,1*,1*" DockPanel.Dock="Top">
 			<StackPanel Grid.Column="0" Margin="20">
-				<TextBlock FontSize="15">Sync Progress: 100%</TextBlock>
-				<TextBlock FontSize="15">Epoch: 211</TextBlock>
-				<TextBlock FontSize="15">Slot: 273288 / 432000</TextBlock>
-				<TextBlock FontSize="15">Block No: 4568501</TextBlock>
-				<TextBlock FontSize="15">Balance: ₳1,000</TextBlock>
+				<StackPanel Orientation="Horizontal">
+					<TextBlock FontSize="15" Margin="0,0,5,0">Node Status:</TextBlock>
+					<TextBlock FontSize="15" FontWeight="Bold" Foreground="#E1B754" Text="{Binding NodeStatus, Converter={StaticResource NodeStatusConverter}}" />
+					<TextBlock FontSize="15" Margin="5,0">-</TextBlock>
+					<TextBlock FontSize="15" Text="{Binding NodeSyncProgress}"/>
+					<TextBlock FontSize="15" Text="%"/>
+				</StackPanel>
+				<StackPanel Orientation="Horizontal">
+					<TextBlock FontSize="15" Margin="0,0,5,0">Epoch:</TextBlock>
+					<TextBlock FontSize="15" FontWeight="Bold" Foreground="#5D437C" Text="{Binding Epoch}"/>
+				</StackPanel>
+				<StackPanel Orientation="Horizontal">
+					<TextBlock FontSize="15" Margin="0,0,5,0">Slot:</TextBlock>
+					<TextBlock FontSize="15" FontWeight="Bold" Foreground="#5D437C"  Text="{Binding SlotInEpoch}"/>
+				</StackPanel>
+				<StackPanel Orientation="Horizontal">
+					<TextBlock FontSize="15" Margin="0,0,5,0">Block#:</TextBlock>
+					<TextBlock FontSize="15" FontWeight="Bold" Foreground="#5D437C"  Text="{Binding BlockNo}"/>
+				</StackPanel>
+				<TextBlock FontSize="15">Balance: ₳0</TextBlock>
 				<Button Margin="10">Withdraw</Button>
 			</StackPanel>
 			<StackPanel Grid.Column="1">
