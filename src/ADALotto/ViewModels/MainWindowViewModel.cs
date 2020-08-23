@@ -102,42 +102,45 @@ namespace ADALotto.ViewModels
 
 		private async void OnOutputDataReceived(object sender, DataReceivedEventArgs e)
 		{
-			Console.WriteLine(e.Data);
-			if (e.Data != null && e.Data.Contains("block replay progress (%)"))
+			if (e.Data != null)
 			{
-				NodeStatus = CardanoNodeStatus.BlockReplay;
-				var dataSplt = e.Data.Split("=");
-				double p = 0;
-				double.TryParse(dataSplt[1], out p);
-				NodeSyncProgress = p;
-			}
+				Console.WriteLine(e.Data);
+				if (e.Data.Contains("block replay progress (%)"))
+				{
+					NodeStatus = CardanoNodeStatus.BlockReplay;
+					var dataSplt = e.Data.Split("=");
+					double p = 0;
+					double.TryParse(dataSplt[1], out p);
+					NodeSyncProgress = p;
+				}
 
-			if (e.Data.Contains("Opened lgr db"))
-			{
-				NodeStatus = CardanoNodeStatus.OpeningDatabase;
-				NodeSyncProgress = 100;
-			}
+				if (e.Data.Contains("Opened lgr db"))
+				{
+					NodeStatus = CardanoNodeStatus.OpeningDatabase;
+					NodeSyncProgress = 100;
+				}
 
-			if (e.Data.Contains("Chain extended"))
-			{
-				NodeStatus = CardanoNodeStatus.Online;
-				NodeSyncProgress = 100;
+				if (e.Data.Contains("Chain extended"))
+				{
+					NodeStatus = CardanoNodeStatus.Online;
+					NodeSyncProgress = 100;
 
-				var metricString = await HttpClient.GetStringAsync("http://127.0.0.1:12798/metrics");
-				var metrics = metricString.Split('\n');
+					var metricString = await HttpClient.GetStringAsync("http://127.0.0.1:12798/metrics");
+					var metrics = metricString.Split('\n');
 
-				Epoch = int.Parse(metrics
-					.Where((s) => s.Contains("cardano_node_ChainDB_metrics_epoch_int"))
-					.Select((s) => s.Split(" ")[1]).FirstOrDefault());
+					Epoch = int.Parse(metrics
+						.Where((s) => s.Contains("cardano_node_ChainDB_metrics_epoch_int"))
+						.Select((s) => s.Split(" ")[1]).FirstOrDefault());
 
-				SlotInEpoch = int.Parse(metrics
-					.Where((s) => s.Contains("cardano_node_ChainDB_metrics_slotInEpoch_int"))
-					.Select((s) => s.Split(" ")[1]).FirstOrDefault());
+					SlotInEpoch = int.Parse(metrics
+						.Where((s) => s.Contains("cardano_node_ChainDB_metrics_slotInEpoch_int"))
+						.Select((s) => s.Split(" ")[1]).FirstOrDefault());
 
-				BlockNo = int.Parse(metrics
-					.Where((s) => s.Contains("cardano_node_ChainDB_metrics_blockNum_int"))
-					.Select((s) => s.Split(" ")[1]).FirstOrDefault());
+					BlockNo = int.Parse(metrics
+						.Where((s) => s.Contains("cardano_node_ChainDB_metrics_blockNum_int"))
+						.Select((s) => s.Split(" ")[1]).FirstOrDefault());
 
+				}
 			}
 		}
 
