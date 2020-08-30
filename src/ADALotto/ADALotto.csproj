@@ -1,22 +1,36 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
-  </PropertyGroup>
-  <ItemGroup>
-    <Folder Include="Models\" />
-    <Compile Update="**\*.xaml.cs">
-      <DependentUpon>%(Filename)</DependentUpon>
-    </Compile>
-    <AvaloniaResource Include="**\*.xaml">
-      <SubType>Designer</SubType>
-    </AvaloniaResource>
-    <AvaloniaResource Include="Assets\**" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Avalonia" Version="0.9.12" />
-    <PackageReference Include="Avalonia.Desktop" Version="0.9.12" />
-    <PackageReference Include="Avalonia.ReactiveUI" Version="0.9.12" />
-    <PackageReference Include="securifybv.ShellLink" Version="0.1.0" />
-  </ItemGroup>
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>netcoreapp3.1</TargetFramework>
+	</PropertyGroup>
+	<ItemGroup>
+		<Folder Include="Models\"/>
+		<Compile Update="**\*.xaml.cs">
+			<DependentUpon>%(Filename)</DependentUpon>
+		</Compile>
+		<AvaloniaResource Include="**\*.xaml">
+			<SubType>Designer</SubType>
+		</AvaloniaResource>
+		<AvaloniaResource Include="Assets\**"/>
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Avalonia" Version="0.9.12"/>
+		<PackageReference Include="Avalonia.Desktop" Version="0.9.12"/>
+		<PackageReference Include="Avalonia.ReactiveUI" Version="0.9.12"/>
+		<PackageReference Include="securifybv.ShellLink" Version="0.1.0"/>
+	</ItemGroup>
+	<ItemGroup>
+		<Content Remove="config/config.json"/>
+		<Content Remove="config/genesis.json"/>
+		<Content Remove="config/genesis-byron.json"/>
+		<Content Remove="config/genesis-shelley.json"/>
+		<Content Remove="config/topology.json"/>
+	</ItemGroup>
+	<ItemGroup>
+		<EmbeddedResource Include="config/config.json"/>
+		<EmbeddedResource Include="config/genesis.json"/>
+		<EmbeddedResource Include="config/genesis-byron.json"/>
+		<EmbeddedResource Include="config/genesis-shelley.json"/>
+		<EmbeddedResource Include="config/topology.json"/>
+	</ItemGroup>
 </Project>

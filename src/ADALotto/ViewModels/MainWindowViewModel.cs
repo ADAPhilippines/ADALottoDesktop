@@ -50,6 +50,7 @@ namespace ADALotto.ViewModels
 		private HttpClient HttpClient { get; set; } = new HttpClient();
 		private readonly string CARDANO_SOCKET_PATH = "\"\\\\.\\pipe\\cardano-lotto\"";
 		private readonly int CARDANO_PORT = 11337;
+		private string TempPath { get; set; }
 
 		/// <summary>
 		/// @TODO parts of it to be moved to Cardano.NET Library
@@ -57,7 +58,7 @@ namespace ADALotto.ViewModels
 		public void InitializeCardanoNode()
 		{
 			NodeStatus = CardanoNodeStatus.Starting;
-			//Get Start Menu Daedalus Link
+			// Get Start Menu Daedalus Link
 			var startMenuPath = Environment.GetFolderPath(Environment.SpecialFolder.StartMenu);
 			var daedalusShortcut = Path.Combine(startMenuPath, "Programs", "Daedalus Mainnet", "Daedalus Mainnet.lnk");
 
@@ -65,9 +66,23 @@ namespace ADALotto.ViewModels
 			var shortcut = Shortcut.ReadFromFile(daedalusShortcut);
 			DaedalusInstallPath = shortcut.StringData.WorkingDir;
 
-			//Get Daedalus State Dir
+			// Get Daedalus State Dir
 			var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 			var stateDir = GetDaedalusStateDir().Replace("${APPDATA}", appData);
+
+			// Get OS Temp Path
+			TempPath = Path.Combine(Path.GetTempPath(), "adalotto");
+
+			// Prepare Config files for Cardano Node
+			ExtractConfigFiles();
+			
+			// Copy the blockchain data so we don't mess around with daedalus running
+			if(!Directory.Exists(Path.Combine(stateDir, "lotto-chain")))
+			{
+				var daedalusChain = Path.Combine(stateDir, "chain");
+				var lottoChain = Path.Combine(stateDir, "lotto-chain");
+				DirectoryCopy(daedalusChain, lottoChain, true);
+			}
 
 			CardanoNodeProcess = new Process();
 			CardanoNodeProcess.StartInfo = new ProcessStartInfo
@@ -76,9 +91,9 @@ namespace ADALotto.ViewModels
 				Arguments = string.Join(
 					" ",
 					"run",
-					"--topology", $"\"{DaedalusInstallPath}\\topology.yaml\"",
-					"--database-path", $"\"{Path.Combine(stateDir, "chain")}\"",
-					"--config", $"\"{DaedalusInstallPath}\\config.yaml\"",
+					"--topology", $"\"{TempPath}\\config\\topology.json\"",
+					"--database-path", $"\"{Path.Combine(stateDir, "lotto-chain")}\"",
+					"--config", $"\"{TempPath}\\config\\config.json\"",
 					"--port", CARDANO_PORT,
 					"--host-addr", "\"0.0.0.0\"",
 					$"--socket-path={CARDANO_SOCKET_PATH}"
@@ -91,6 +106,69 @@ namespace ADALotto.ViewModels
 			CardanoNodeProcess.BeginOutputReadLine();
 		}
 
+		private void ExtractConfigFiles()
+		{
+			var assembly = typeof(Program).Assembly;
+			var resources = assembly.GetManifestResourceNames();
+
+			foreach (string resource in resources)
+			{
+				if(!resource.Contains("!AvaloniaResources"))
+				{
+					var resourceSplit = resource.Split('.');
+					var resourceDir = string.Join("/", resourceSplit.Skip(1).Take(resourceSplit.Length - 3).ToArray());
+					var resourceFile = $"{resourceSplit[resourceSplit.Length - 2]}.{resourceSplit[resourceSplit.Length - 1]}";
+
+					if (!Directory.Exists(Path.Combine(TempPath, resourceDir)))
+						Directory.CreateDirectory(Path.Combine(TempPath, resourceDir));
+
+					using var resourceStream = assembly.GetManifestResourceStream(resource);
+					using var fileStream = new FileStream(
+						Path.Combine(TempPath, resourceDir ,resourceFile),
+						FileMode.OpenOrCreate, FileAccess.ReadWrite);
+					resourceStream.CopyTo(fileStream);
+				}
+			}
+		}
+
+		private static void DirectoryCopy(string sourceDirName, string destDirName, bool copySubDirs)
+		{
+			// Get the subdirectories for the specified directory.
+			DirectoryInfo dir = new DirectoryInfo(sourceDirName);
+
+			if (!dir.Exists)
+			{
+				throw new DirectoryNotFoundException(
+					"Source directory does not exist or could not be found: "
+					+ sourceDirName);
+			}
+
+			DirectoryInfo[] dirs = dir.GetDirectories();
+			// If the destination directory doesn't exist, create it.
+			if (!Directory.Exists(destDirName))
+			{
+				Directory.CreateDirectory(destDirName);
+			}
+
+			// Get the files in the directory and copy them to the new location.
+			FileInfo[] files = dir.GetFiles();
+			foreach (FileInfo file in files)
+			{
+				string temppath = Path.Combine(destDirName, file.Name);
+				file.CopyTo(temppath, false);
+			}
+
+			// If copying subdirectories, copy them and their contents to new location.
+			if (copySubDirs)
+			{
+				foreach (DirectoryInfo subdir in dirs)
+				{
+					string temppath = Path.Combine(destDirName, subdir.Name);
+					DirectoryCopy(subdir.FullName, temppath, copySubDirs);
+				}
+			}
+		}
+
 		private string GetDaedalusStateDir()
 		{
 			var launcherConfig = JsonSerializer
@@ -98,7 +176,6 @@ namespace ADALotto.ViewModels
 					File.ReadAllText(Path.Combine(DaedalusInstallPath, "launcher-config.yaml")));
 			return launcherConfig.StateDir;
 		}
-
 
 		private async void OnOutputDataReceived(object sender, DataReceivedEventArgs e)
 		{
