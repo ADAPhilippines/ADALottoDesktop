@@ -20,7 +20,11 @@ namespace ADALotto.ViewModels
 		public CardanoNodeStatus NodeStatus
 		{
 			get => _nodeStatus;
-			set => this.RaiseAndSetIfChanged(ref _nodeStatus, value);
+			set
+			{
+				this.RaiseAndSetIfChanged(ref _nodeStatus, value);
+				this.RaisePropertyChanged("IsSynced");
+			}
 		}
 		private double _nodeSyncProgress = 0;
 		public double NodeSyncProgress
@@ -45,6 +49,20 @@ namespace ADALotto.ViewModels
 		{
 			get => _blockNo;
 			set => this.RaiseAndSetIfChanged(ref _blockNo, value);
+		}
+		public bool IsSynced
+		{
+			get
+			{
+				return NodeStatus == CardanoNodeStatus.Online;
+			}
+		}
+		public bool IsNotSynced
+		{
+			get
+			{
+				return NodeStatus != CardanoNodeStatus.Online;
+			}
 		}
 		public int Digits { get; set; } = 6;
 		private HttpClient HttpClient { get; set; } = new HttpClient();
@@ -75,9 +93,9 @@ namespace ADALotto.ViewModels
 
 			// Prepare Config files for Cardano Node
 			ExtractConfigFiles();
-			
+
 			// Copy the blockchain data so we don't mess around with daedalus running
-			if(!Directory.Exists(Path.Combine(stateDir, "lotto-chain")))
+			if (!Directory.Exists(Path.Combine(stateDir, "lotto-chain")))
 			{
 				var daedalusChain = Path.Combine(stateDir, "chain");
 				var lottoChain = Path.Combine(stateDir, "lotto-chain");
@@ -113,7 +131,7 @@ namespace ADALotto.ViewModels
 
 			foreach (string resource in resources)
 			{
-				if(!resource.Contains("!AvaloniaResources"))
+				if (!resource.Contains("!AvaloniaResources"))
 				{
 					var resourceSplit = resource.Split('.');
 					var resourceDir = string.Join("/", resourceSplit.Skip(1).Take(resourceSplit.Length - 3).ToArray());
@@ -124,7 +142,7 @@ namespace ADALotto.ViewModels
 
 					using var resourceStream = assembly.GetManifestResourceStream(resource);
 					using var fileStream = new FileStream(
-						Path.Combine(TempPath, resourceDir ,resourceFile),
+						Path.Combine(TempPath, resourceDir, resourceFile),
 						FileMode.OpenOrCreate, FileAccess.ReadWrite);
 					resourceStream.CopyTo(fileStream);
 				}

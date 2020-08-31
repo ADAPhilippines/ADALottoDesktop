@@ -44,7 +44,7 @@
 					<TextBlock FontSize="15" FontWeight="Bold" Foreground="#5D437C"  Text="{Binding BlockNo}"/>
 				</StackPanel>
 				<TextBlock FontSize="15">Balance: ₳0</TextBlock>
-				<Button Margin="10">Withdraw</Button>
+				<Button Margin="10" IsEnabled="{Binding IsSynced}">Withdraw</Button>
 			</StackPanel>
 			<StackPanel Grid.Column="1">
 				<TextBlock Text="ADALotto" FontSize="35" HorizontalAlignment="Center" VerticalAlignment="Center" DockPanel.Dock="Top"/>
