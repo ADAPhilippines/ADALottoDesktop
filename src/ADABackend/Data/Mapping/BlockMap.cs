@@ -28,7 +28,13 @@ namespace Cardano.Data.Mapping
                 .HasColumnName("hash")
                 .HasColumnType("bytea");
 
+            builder.Property(t => t.EpochNo)
+                .HasColumnName("epoch_no")
+                .HasColumnType("integer");
 
+            builder.Property(t => t.SlotNo)
+                .HasColumnName("slot_no")
+                .HasColumnType("integer");
 
             builder.Property(t => t.BlockNo)
                 .HasColumnName("block_no")
@@ -37,6 +43,10 @@ namespace Cardano.Data.Mapping
             builder.Property(t => t.Previous)
                 .HasColumnName("previous")
                 .HasColumnType("bigint");
+
+            builder.Property(t => t.MerkelRoot)
+                .HasColumnName("merkel_root")
+                .HasColumnType("bytea");
 
             builder.Property(t => t.SlotLeader)
                 .IsRequired()
@@ -61,6 +71,19 @@ namespace Cardano.Data.Mapping
             builder.Property(t => t.EpochSlotNo)
                 .HasColumnName("epoch_slot_no")
                 .HasColumnType("integer");
+
+            builder.Property(t => t.VrfKey)
+                .HasColumnName("vrf_key")
+                .HasColumnType("bytea");
+
+            builder.Property(t => t.OpCert)
+                .HasColumnName("op_cert")
+                .HasColumnType("bytea");
+
+            builder.Property(t => t.ProtoVersion)
+                .HasColumnName("proto_version")
+                .HasColumnType("character varying");
+
             // relationships
             builder.HasOne(t => t.PreviousBlock)
                 .WithMany(t => t.PreviousBlocks)
@@ -75,32 +98,22 @@ namespace Cardano.Data.Mapping
             #endregion
 
             builder.Property(t => t.EpochNo)
-                .IsRequired(false)
-                .HasColumnName("epoch_no")
-                .HasColumnType("integer");
+                .IsRequired(false);
 
             builder.Property(t => t.SlotNo)
-                .IsRequired(false)
-                .HasColumnName("slot_no")
-                .HasColumnType("integer");
-            builder.Property(t => t.MerkelRoot)
-                .IsRequired(false)
-                .HasColumnName("merkel_root")
-                .HasColumnType("bytea");
-            builder.Property(t => t.VrfKey)
-                .IsRequired(false)
-                .HasColumnName("vrf_key")
-                .HasColumnType("bytea");
+                .IsRequired(false);
 
+            builder.Property(t => t.MerkelRoot)
+                .IsRequired(false);
+
+            builder.Property(t => t.VrfKey)
+                .IsRequired(false);
+                
             builder.Property(t => t.OpCert)
-                .IsRequired(false)
-                .HasColumnName("op_cert")
-                .HasColumnType("bytea");
+                .IsRequired(false);
 
             builder.Property(t => t.ProtoVersion)
-                .IsRequired(false)
-                .HasColumnName("proto_version")
-                .HasColumnType("character varying");
+                .IsRequired(false);
 
         }
 
