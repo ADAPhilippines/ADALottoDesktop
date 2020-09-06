@@ -2,8 +2,12 @@ project:
   namespace: '{Database.Name}'
   directory: .\
 database:
-  provider: SqlServer
+  provider: PostgreSQL
+  connectionString: Host=localhost;Username=postgres;Database=cardano;Password=Test!2#4;Persist Security Info=True
   tableNaming: Singular
+  tables: []
+  schemas: []
+  exclude: []
 data:
   context:
     name: '{Database.Name}Context'
@@ -34,17 +38,41 @@ model:
   shared:
     namespace: '{Project.Namespace}.Domain.Models'
     directory: '{Project.Directory}\Domain\Models'
+    include:
+      entities: []
+      properties: []
+    exclude:
+      entities: []
+      properties: []
   read:
     generate: true
     name: '{Entity.Name}ReadModel'
+    include:
+      entities: []
+      properties: []
+    exclude:
+      entities: []
+      properties: []
     document: false
   create:
     generate: true
     name: '{Entity.Name}CreateModel'
+    include:
+      entities: []
+      properties: []
+    exclude:
+      entities: []
+      properties: []
     document: false
   update:
     generate: true
     name: '{Entity.Name}UpdateModel'
+    include:
+      entities: []
+      properties: []
+    exclude:
+      entities: []
+      properties: []
     document: false
   mapper:
     generate: true
@@ -60,3 +88,7 @@ model:
     namespace: '{Project.Namespace}.Domain.Validation'
     directory: '{Project.Directory}\Domain\Validation'
     document: false
+script:
+  context: []
+  entity: []
+  model: []

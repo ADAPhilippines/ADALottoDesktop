@@ -28,15 +28,7 @@ namespace Cardano.Data.Mapping
                 .HasColumnName("hash")
                 .HasColumnType("bytea");
 
-            builder.Property(t => t.EpochNo)
-                .IsRequired(false)
-                .HasColumnName("epoch_no")
-                .HasColumnType("integer");
 
-            builder.Property(t => t.SlotNo)
-                .IsRequired(false)
-                .HasColumnName("slot_no")
-                .HasColumnType("integer");
 
             builder.Property(t => t.BlockNo)
                 .HasColumnName("block_no")
@@ -45,11 +37,6 @@ namespace Cardano.Data.Mapping
             builder.Property(t => t.Previous)
                 .HasColumnName("previous")
                 .HasColumnType("bigint");
-
-            builder.Property(t => t.MerkelRoot)
-                .IsRequired(false)
-                .HasColumnName("merkel_root")
-                .HasColumnType("bytea");
 
             builder.Property(t => t.SlotLeader)
                 .IsRequired()
@@ -74,7 +61,32 @@ namespace Cardano.Data.Mapping
             builder.Property(t => t.EpochSlotNo)
                 .HasColumnName("epoch_slot_no")
                 .HasColumnType("integer");
+            // relationships
+            builder.HasOne(t => t.PreviousBlock)
+                .WithMany(t => t.PreviousBlocks)
+                .HasForeignKey(d => d.Previous)
+                .HasConstraintName("block_previous_fkey");
 
+            builder.HasOne(t => t.SlotLeader1)
+                .WithMany(t => t.Blocks)
+                .HasForeignKey(d => d.SlotLeader)
+                .HasConstraintName("block_slot_leader_fkey");
+
+            #endregion
+
+            builder.Property(t => t.EpochNo)
+                .IsRequired(false)
+                .HasColumnName("epoch_no")
+                .HasColumnType("integer");
+
+            builder.Property(t => t.SlotNo)
+                .IsRequired(false)
+                .HasColumnName("slot_no")
+                .HasColumnType("integer");
+            builder.Property(t => t.MerkelRoot)
+                .IsRequired(false)
+                .HasColumnName("merkel_root")
+                .HasColumnType("bytea");
             builder.Property(t => t.VrfKey)
                 .IsRequired(false)
                 .HasColumnName("vrf_key")
@@ -90,18 +102,6 @@ namespace Cardano.Data.Mapping
                 .HasColumnName("proto_version")
                 .HasColumnType("character varying");
 
-            // relationships
-            builder.HasOne(t => t.PreviousBlock)
-                .WithMany(t => t.PreviousBlocks)
-                .HasForeignKey(d => d.Previous)
-                .HasConstraintName("block_previous_fkey");
-
-            builder.HasOne(t => t.SlotLeader1)
-                .WithMany(t => t.Blocks)
-                .HasForeignKey(d => d.SlotLeader)
-                .HasConstraintName("block_slot_leader_fkey");
-
-            #endregion
         }
 
         #region Generated Constants
