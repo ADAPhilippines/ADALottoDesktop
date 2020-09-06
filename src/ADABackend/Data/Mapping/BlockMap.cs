@@ -29,10 +29,12 @@ namespace Cardano.Data.Mapping
                 .HasColumnType("bytea");
 
             builder.Property(t => t.EpochNo)
+                .IsRequired(false)
                 .HasColumnName("epoch_no")
                 .HasColumnType("integer");
 
             builder.Property(t => t.SlotNo)
+                .IsRequired(false)
                 .HasColumnName("slot_no")
                 .HasColumnType("integer");
 
@@ -45,6 +47,7 @@ namespace Cardano.Data.Mapping
                 .HasColumnType("bigint");
 
             builder.Property(t => t.MerkelRoot)
+                .IsRequired(false)
                 .HasColumnName("merkel_root")
                 .HasColumnType("bytea");
 
@@ -73,14 +76,17 @@ namespace Cardano.Data.Mapping
                 .HasColumnType("integer");
 
             builder.Property(t => t.VrfKey)
+                .IsRequired(false)
                 .HasColumnName("vrf_key")
                 .HasColumnType("bytea");
 
             builder.Property(t => t.OpCert)
+                .IsRequired(false)
                 .HasColumnName("op_cert")
                 .HasColumnType("bytea");
 
             builder.Property(t => t.ProtoVersion)
+                .IsRequired(false)
                 .HasColumnName("proto_version")
                 .HasColumnType("character varying");
 

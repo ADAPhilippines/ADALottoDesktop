@@ -6,6 +6,8 @@ using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Voyager;
 using HotChocolate.Subscriptions;
 using HotChocolate.Types;
+using Cardano.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace ADABackend
 {
@@ -30,6 +32,11 @@ namespace ADABackend
                     // enable for authorization support
                     // .AddAuthorizeDirectiveType()
                     .AddQueryType<Query>());
+            
+            services
+            .AddEntityFrameworkNpgsql()
+            .AddDbContext<CardanoContext>(
+                options => options.UseNpgsql("Host=localhost;Username=postgres;Database=cardano;Password=Test!2#4;Persist Security Info=True"));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
