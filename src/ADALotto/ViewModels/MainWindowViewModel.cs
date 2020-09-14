@@ -9,6 +9,7 @@ using ADALotto.Models;
 using ReactiveUI;
 using ShellLink;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace ADALotto.ViewModels
 {
@@ -73,58 +74,61 @@ namespace ADALotto.ViewModels
 		/// <summary>
 		/// @TODO parts of it to be moved to Cardano.NET Library
 		/// </summary>
-		public void InitializeCardanoNode()
+		public async Task InitializeCardanoNodeAsync()
 		{
-			NodeStatus = CardanoNodeStatus.Starting;
-			// Get Start Menu Daedalus Link
-			var startMenuPath = Environment.GetFolderPath(Environment.SpecialFolder.StartMenu);
-			var daedalusShortcut = Path.Combine(startMenuPath, "Programs", "Daedalus Mainnet", "Daedalus Mainnet.lnk");
-
-			// Get Daedalus Install Dir from Link
-			var shortcut = Shortcut.ReadFromFile(daedalusShortcut);
-			DaedalusInstallPath = shortcut.StringData.WorkingDir;
-
-			// Get Daedalus State Dir
-			var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			var stateDir = GetDaedalusStateDir().Replace("${APPDATA}", appData);
-
-			// Get OS Temp Path
-			TempPath = Path.Combine(Path.GetTempPath(), "adalotto");
-
-			// Prepare Config files for Cardano Node
-			ExtractConfigFiles();
-
-			// Copy the blockchain data so we don't mess around with daedalus running
-			if (!Directory.Exists(Path.Combine(stateDir, "lotto-chain")))
+			await Task.Run(() =>
 			{
-				var daedalusChain = Path.Combine(stateDir, "chain");
-				var lottoChain = Path.Combine(stateDir, "lotto-chain");
-				DirectoryCopy(daedalusChain, lottoChain, true);
-			}
+				NodeStatus = CardanoNodeStatus.Starting;
+				// Get Start Menu Daedalus Link
+				var startMenuPath = Environment.GetFolderPath(Environment.SpecialFolder.StartMenu);
+				var daedalusShortcut = Path.Combine(startMenuPath, "Programs", "Daedalus Mainnet", "Daedalus Mainnet.lnk");
 
-			CardanoNodeProcess = new Process();
-			CardanoNodeProcess.StartInfo = new ProcessStartInfo
-			{
-				FileName = $"{DaedalusInstallPath}\\cardano-node.exe",
-				Arguments = string.Join(
-					" ",
-					"run",
-					"--topology", $"\"{TempPath}\\config\\topology.json\"",
-					"--database-path", $"\"{Path.Combine(stateDir, "lotto-chain")}\"",
-					"--config", $"\"{TempPath}\\config\\config.json\"",
-					"--port", CARDANO_PORT,
-					"--host-addr", "\"0.0.0.0\"",
-					$"--socket-path={CARDANO_SOCKET_PATH}"
-				),
-				UseShellExecute = false,
-				RedirectStandardOutput = true
-			};
-			CardanoNodeProcess.OutputDataReceived += OnOutputDataReceived;
-			CardanoNodeProcess.Start();
-			CardanoNodeProcess.BeginOutputReadLine();
+				// Get Daedalus Install Dir from Link
+				var shortcut = Shortcut.ReadFromFile(daedalusShortcut);
+				DaedalusInstallPath = shortcut.StringData.WorkingDir;
+
+				// Get Daedalus State Dir
+				var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+				var stateDir = GetDaedalusStateDir().Replace("${APPDATA}", appData);
+
+				// Get OS Temp Path
+				TempPath = Path.Combine(Path.GetTempPath(), "adalotto");
+
+				// Prepare Config files for Cardano Node
+				PrepareConfigFiles();
+
+				// Copy the blockchain data so we don't mess around with daedalus running
+				if (!Directory.Exists(Path.Combine(stateDir, "lotto-chain")))
+				{
+					var daedalusChain = Path.Combine(stateDir, "chain");
+					var lottoChain = Path.Combine(stateDir, "lotto-chain");
+					DirectoryCopy(daedalusChain, lottoChain, true);
+				}
+
+				CardanoNodeProcess = new Process();
+				CardanoNodeProcess.StartInfo = new ProcessStartInfo
+				{
+					FileName = $"{DaedalusInstallPath}\\cardano-node.exe",
+					Arguments = string.Join(
+						" ",
+						"run",
+						"--topology", $"\"{TempPath}\\config\\topology.json\"",
+						"--database-path", $"\"{Path.Combine(stateDir, "lotto-chain")}\"",
+						"--config", $"\"{TempPath}\\config\\config.json\"",
+						"--port", CARDANO_PORT,
+						"--host-addr", "\"0.0.0.0\"",
+						$"--socket-path={CARDANO_SOCKET_PATH}"
+					),
+					UseShellExecute = false,
+					RedirectStandardOutput = true
+				};
+				CardanoNodeProcess.OutputDataReceived += OnOutputDataReceived;
+				CardanoNodeProcess.Start();
+				CardanoNodeProcess.BeginOutputReadLine();
+			});
 		}
 
-		private void ExtractConfigFiles()
+		private void PrepareConfigFiles()
 		{
 			var assembly = typeof(Program).Assembly;
 			var resources = assembly.GetManifestResourceNames();
@@ -147,6 +151,24 @@ namespace ADALotto.ViewModels
 					resourceStream.CopyTo(fileStream);
 				}
 			}
+
+			File.Copy(
+				Path.Combine(DaedalusInstallPath, "genesis-byron.json"),
+				Path.Combine(TempPath, "config", "genesis-byron.json"),
+				true
+			);
+
+			File.Copy(
+				Path.Combine(DaedalusInstallPath, "genesis-shelley.json"),
+				Path.Combine(TempPath, "config", "genesis-shelley.json"),
+				true
+			);
+
+			File.Copy(
+				Path.Combine(DaedalusInstallPath, "topology.yaml"),
+				Path.Combine(TempPath, "config", "topology.json"),
+				true
+			);
 		}
 
 		private static void DirectoryCopy(string sourceDirName, string destDirName, bool copySubDirs)

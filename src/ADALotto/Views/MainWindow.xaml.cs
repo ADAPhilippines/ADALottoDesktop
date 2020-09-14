@@ -26,10 +26,10 @@ namespace ADALotto.Views
 #endif
 		}
 
-		private void OnOpened(object sender, EventArgs e)
+		private async void OnOpened(object sender, EventArgs e)
 		{
 			GenerateLottoBoxes();
-			ViewModel.InitializeCardanoNode();
+			await ViewModel.InitializeCardanoNodeAsync();
 		}
 
 		private void InitializeComponent()
