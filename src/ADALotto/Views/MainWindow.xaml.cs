@@ -10,7 +10,7 @@ namespace ADALotto.Views
 {
 	public class MainWindow : Window
 	{
-		public MainWindowViewModel ViewModel 
+		public MainWindowViewModel? ViewModel 
 		{
 			get
 			{
@@ -26,10 +26,11 @@ namespace ADALotto.Views
 #endif
 		}
 
-		private async void OnOpened(object sender, EventArgs e)
+		private async void OnOpened(object? sender, EventArgs e)
 		{
 			GenerateLottoBoxes();
-			await ViewModel.InitializeCardanoNodeAsync();
+			if(ViewModel != null)
+				await ViewModel.InitializeCardanoNodeAsync();
 		}
 
 		private void InitializeComponent()
@@ -44,7 +45,7 @@ namespace ADALotto.Views
 		{
 			var panelLottoNumbers = this.FindControl<StackPanel>("panelLottoNumbers");
 			panelLottoNumbers.Children.Clear();
-			for (int x = 0; x < ViewModel.Digits; x++)
+			for (int x = 0; x < ViewModel?.Digits; x++)
 			{
 				var newLottoBox = new TextBox();
 				newLottoBox.Watermark = "00";
@@ -57,7 +58,7 @@ namespace ADALotto.Views
 
 		protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
 		{
-			ViewModel.StopNode();
+			ViewModel?.StopNode();
 			base.OnClosing(e);
 		}
 	}

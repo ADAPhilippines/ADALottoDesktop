@@ -2,31 +2,36 @@
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
 		<TargetFramework>netcoreapp3.1</TargetFramework>
+    	<LangVersion>8.0</LangVersion>
+		<Nullable>enable</Nullable>
 	</PropertyGroup>
 	<ItemGroup>
-		<Folder Include="Models\"/>
+		<Folder Include="Models\" />
 		<Compile Update="**\*.xaml.cs">
 			<DependentUpon>%(Filename)</DependentUpon>
 		</Compile>
 		<AvaloniaResource Include="**\*.xaml">
 			<SubType>Designer</SubType>
 		</AvaloniaResource>
-		<AvaloniaResource Include="Assets\**"/>
+		<AvaloniaResource Include="Assets\**" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="Avalonia" Version="0.9.12"/>
-		<PackageReference Include="Avalonia.Desktop" Version="0.9.12"/>
-		<PackageReference Include="Avalonia.ReactiveUI" Version="0.9.12"/>
-		<PackageReference Include="securifybv.ShellLink" Version="0.1.0"/>
+		<PackageReference Include="Avalonia" Version="0.9.12" />
+		<PackageReference Include="Avalonia.Desktop" Version="0.9.12" />
+		<PackageReference Include="Avalonia.ReactiveUI" Version="0.9.12" />
+		<PackageReference Include="securifybv.ShellLink" Version="0.1.0" />
 	</ItemGroup>
 	<ItemGroup>
-		<Content Remove="config/config.json"/>
-		<Content Remove="config/genesis.json"/>
-		<Content Remove="config/genesis-byron.json"/>
-		<Content Remove="config/genesis-shelley.json"/>
-		<Content Remove="config/topology.json"/>
+		<Content Remove="config/config.json" />
+		<Content Remove="config/genesis.json" />
+		<Content Remove="config/genesis-byron.json" />
+		<Content Remove="config/genesis-shelley.json" />
+		<Content Remove="config/topology.json" />
 	</ItemGroup>
 	<ItemGroup>
-		<EmbeddedResource Include="config/config.json"/>
+		<EmbeddedResource Include="config/config.json" />
+	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\CardanoWallet.NET\CardanoWallet.NET.csproj" />
 	</ItemGroup>
 </Project>
