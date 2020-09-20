@@ -16,16 +16,18 @@ namespace ADALotto.ViewModels
 {
     public class MainWindowViewModel : ViewModelBase
     {
+		
+		#region Properties
         public string DaedalusInstallPath { get; private set; } = string.Empty;
         public string DaedalusStateDir { get; private set; } = string.Empty;
         public Process? CardanoNodeProcess { get; private set; }
-        private CardanoNodeStatus _nodeStatus = CardanoNodeStatus.Offline;
-        public CardanoNodeStatus NodeStatus
+        private AppStatus _appStatus = AppStatus.Offline;
+        public AppStatus AppStatus
         {
-            get => _nodeStatus;
+            get => _appStatus;
             set
             {
-                this.RaiseAndSetIfChanged(ref _nodeStatus, value);
+                this.RaiseAndSetIfChanged(ref _appStatus, value);
                 this.RaisePropertyChanged("IsSynced");
             }
         }
@@ -57,27 +59,31 @@ namespace ADALotto.ViewModels
         {
             get
             {
-                return NodeStatus == CardanoNodeStatus.Online;
+                return AppStatus == AppStatus.Online;
             }
         }
         public bool IsNotSynced
         {
             get
             {
-                return NodeStatus != CardanoNodeStatus.Online;
+                return AppStatus != AppStatus.Online;
             }
         }
         public int Digits { get; set; } = 6;
+		#endregion
+		#region Events
+		public event EventHandler? NewWalletRequest;
+		#endregion
         #region Constants
         private readonly string CARDANO_SOCKET_PATH = "\"\\\\.\\pipe\\cardano-lotto\"";
         private readonly int CARDANO_PORT = 11337;
         private readonly int CARADANO_WALLET_PORT = 11338;
         #endregion
-
         #region Private Properties
         private HttpClient HttpClient { get; set; } = new HttpClient();
         private string TempPath { get; set; } = string.Empty;
         private bool IsWalletStarted { get; set; }
+        private CardanoWallet? CurrentWallet { get; set; }
         #endregion
 
         /// <summary>
@@ -87,7 +93,7 @@ namespace ADALotto.ViewModels
         {
             await Task.Run(() =>
             {
-                NodeStatus = CardanoNodeStatus.Starting;
+                AppStatus = AppStatus.Starting;
                 // Get Start Menu Daedalus Link
                 var startMenuPath = Environment.GetFolderPath(Environment.SpecialFolder.StartMenu);
                 var daedalusShortcut = Path.Combine(startMenuPath, "Programs", "Daedalus Mainnet", "Daedalus Mainnet.lnk");
@@ -240,7 +246,7 @@ namespace ADALotto.ViewModels
                 Console.WriteLine(e.Data);
                 if (e.Data.Contains("block replay progress (%)"))
                 {
-                    NodeStatus = CardanoNodeStatus.BlockReplay;
+                    AppStatus = AppStatus.BlockReplay;
                     var dataSplt = e.Data.Split("=");
                     double p = 0;
                     double.TryParse(dataSplt[1], out p);
@@ -249,13 +255,13 @@ namespace ADALotto.ViewModels
 
                 if (e.Data.Contains("Opened lgr db"))
                 {
-                    NodeStatus = CardanoNodeStatus.OpeningDatabase;
+                    AppStatus = AppStatus.Validating;
                     NodeSyncProgress = 100;
                 }
 
                 if (e.Data.Contains("Chain extended"))
                 {
-                    NodeStatus = CardanoNodeStatus.Online;
+                    AppStatus = AppStatus.Online;
                     NodeSyncProgress = 100;
 
                     var metricString = await HttpClient.GetStringAsync("http://127.0.0.1:12798/metrics");
@@ -291,16 +297,17 @@ namespace ADALotto.ViewModels
                 walletPath,
                 CARDANO_SOCKET_PATH,
                 $"\"{walletDbPath}\"",
-				CARADANO_WALLET_PORT
+                CARADANO_WALLET_PORT
             );
             CardanoWalletAPI.StartWallet();
+			NewWalletRequest?.Invoke(this, new EventArgs());
         }
 
         public void StopNode()
         {
-			CardanoWalletAPI.StopWallet();
+            CardanoWalletAPI.StopWallet();
             CardanoNodeProcess?.Kill(true);
-            NodeStatus = CardanoNodeStatus.Offline;
+            AppStatus = AppStatus.Offline;
         }
     }
 }

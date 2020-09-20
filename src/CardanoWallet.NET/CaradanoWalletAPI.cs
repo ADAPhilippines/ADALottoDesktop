@@ -72,11 +72,11 @@ namespace SAIB.CardanoWallet.NET
             WalletProcess?.Kill();
         }
 
-        public static async Task<string[]> GenerateMnemonicsAsync(int? size = null)
+        public static async Task<string[]> GenerateMnemonicsAsync(int? size = 24)
         {
 
             var result = await Cli.Wrap(CardanoWalletBinaryPath)
-                    .WithArguments(size == null ? "mnemonic generate" : $"mnemonic generate --size {size}")
+                    .WithArguments(size == null ? "recovery-phrase generate" : $"recovery-phrase generate --size {size}")
                     .ExecuteBufferedAsync();
 
             var mnemonics = result.StandardOutput
@@ -92,21 +92,20 @@ namespace SAIB.CardanoWallet.NET
             return result;
         }
 
-        public static async Task<CardanoWallet> RestoreWallet(string name, string[] mnemonic, string passphrase)
+        public static async Task<string> RestoreWalletAsync(string name, string[] mnemonic, string passphrase)
         {
             var result = await HttpPostJsonAsync<WalletResponse, WalletRestorePayload>("/v2/byron-wallets", new WalletRestorePayload
             {
-                Style = WalletStyle.Random,
                 Name = name,
                 MnemonicSeed = mnemonic,
                 Passphrase = passphrase
             });
-            return new CardanoWallet(result.Id, passphrase);
+            return result.Id;
         }
 
-        public static async Task<WalletResponse> GetWalletAsync(string id)
+        public static async Task<WalletResponse> GetWalletByIdAsync(string id)
         {
-            return await HttpGetAsync<WalletResponse>($"/v2/byron-wallets/{id}");
+            return await HttpGetAsync<WalletResponse>($"/v2/wallets/{id}");
         }
 
         public static async Task<string> GenerateAddressByWalletIdAsync(string id, string passphrase, long? index = null)

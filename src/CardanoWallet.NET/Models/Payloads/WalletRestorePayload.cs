@@ -5,10 +5,6 @@ namespace SAIB.CardanoWallet.NET.Models.Payloads
 {
     public class WalletRestorePayload
     {
-
-        [JsonPropertyName("style")]
-        public WalletStyle Style { get; set; }
-
         [JsonPropertyName("name")]
         public string Name { get; set; } = string.Empty;
 

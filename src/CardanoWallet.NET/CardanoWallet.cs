@@ -30,25 +30,46 @@ namespace SAIB.CardanoWallet.NET
 
     public class CardanoWallet
     {
-        public string Id { get; private set; }
+        public string Id { get; private set; } = string.Empty;
         public string Name { get; private set; }
-        private string[] _mnemonics { get; set; }
+        private string[] _mnemonics { get; set; } = new string[24];
         private string _passphrase { get; set; }
         public WalletBalance Balance { get; private set; } = new WalletBalance();
         public WalletState State { get; private set; } = new WalletState();
         public Tip Tip { get; private set; } = new Tip();
 
-        public CardanoWallet(string id, string passphase)
+        #region Constructors
+        /// <summary>
+        /// Generates a new Cardano Wallet with a random 24-word recovery phrase
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="passphrase"></param>
+        public CardanoWallet(string name, string passphrase)
+        {
+            Name = name;
+            _passphrase = passphrase;
+            GenerateWallet();
+        }
+
+        public CardanoWallet(string id, string name, string passphase)
         {
             Id = id;
+            Name = name;
             _passphrase = passphase;
-            _mnemonics = new string[0];
-            Name = string.Empty;
         }
+        #endregion
+
+        #region Private Methods
+        private async void GenerateWallet()
+        {
+            _mnemonics = await CardanoWalletAPI.GenerateMnemonicsAsync();
+            Id = await CardanoWalletAPI.RestoreWalletAsync(Name, _mnemonics, _passphrase);
+        }
+        #endregion
 
         public async Task RefreshAsync()
         {
-            var walletResponse = await CardanoWalletAPI.GetWalletAsync(Id);
+            var walletResponse = await CardanoWalletAPI.GetWalletByIdAsync(Id);
             Balance = walletResponse.Balance ?? Balance;
             Name = walletResponse.Name;
             State = walletResponse.State ?? State;

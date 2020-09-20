@@ -5,17 +5,17 @@ using Avalonia.Data.Converters;
 
 namespace ADALotto.Converters
 {
-	public class NodeStatusConverter : IValueConverter
+	public class AppStatusConverter : IValueConverter
 	{
 		public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			return Enum.GetName(typeof(CardanoNodeStatus), value);
+			return Enum.GetName(typeof(AppStatus), value);
 		}
 
 		public object? ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
 		{
 			if(value != null && value is string)
-				return Enum.Parse(typeof(CardanoNodeStatus), (string)value);
+				return Enum.Parse(typeof(AppStatus), (string)value);
 			return null;
 		}
 	}

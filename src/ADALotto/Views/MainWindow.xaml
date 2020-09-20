@@ -18,7 +18,7 @@
 	</Design.DataContext>
 
 	<Window.Resources>
-		<converters:NodeStatusConverter x:Key="NodeStatusConverter"/>
+		<converters:AppStatusConverter x:Key="AppStatusConverter"/>
 	</Window.Resources>
 
 	<DockPanel>
@@ -26,7 +26,7 @@
 			<StackPanel Grid.Column="0" Margin="20">
 				<StackPanel Orientation="Horizontal">
 					<TextBlock FontSize="15" Margin="0,0,5,0">Node Status:</TextBlock>
-					<TextBlock FontSize="15" FontWeight="Bold" Foreground="#E1B754" Text="{Binding NodeStatus, Converter={StaticResource NodeStatusConverter}}" />
+					<TextBlock FontSize="15" FontWeight="Bold" Foreground="#E1B754" Text="{Binding AppStatus, Converter={StaticResource AppStatusConverter}}" />
 					<TextBlock FontSize="15" Margin="5,0">-</TextBlock>
 					<TextBlock FontSize="15" Text="{Binding NodeSyncProgress}"/>
 					<TextBlock FontSize="15" Text="%"/>

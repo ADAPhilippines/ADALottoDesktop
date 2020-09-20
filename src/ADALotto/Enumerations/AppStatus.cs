@@ -1,11 +1,11 @@
 namespace ADALotto.Enumerations
 {
-	public enum CardanoNodeStatus
+	public enum AppStatus
 	{
 		Offline,
 		Starting,
 		Online,
 		BlockReplay,
-		OpeningDatabase
+		Validating
 	}
 }
