@@ -246,7 +246,7 @@ namespace ADALotto.ViewModels
                 Console.WriteLine(e.Data);
                 if (e.Data.Contains("block replay progress (%)"))
                 {
-                    AppStatus = AppStatus.BlockReplay;
+                    AppStatus = AppStatus.Validating;
                     var dataSplt = e.Data.Split("=");
                     double p = 0;
                     double.TryParse(dataSplt[1], out p);
@@ -255,7 +255,7 @@ namespace ADALotto.ViewModels
 
                 if (e.Data.Contains("Opened lgr db"))
                 {
-                    AppStatus = AppStatus.Validating;
+                    AppStatus = AppStatus.Opening;
                     NodeSyncProgress = 100;
                 }
 
@@ -302,6 +302,11 @@ namespace ADALotto.ViewModels
             CardanoWalletAPI.StartWallet();
 			NewWalletRequest?.Invoke(this, new EventArgs());
         }
+
+		public void GenerateWalletWithPass(string pass)
+		{
+			CurrentWallet = new CardanoWallet("adalotto", pass);
+		}
 
         public void StopNode()
         {

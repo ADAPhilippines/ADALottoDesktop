@@ -5,7 +5,7 @@ namespace ADALotto.Enumerations
 		Offline,
 		Starting,
 		Online,
-		BlockReplay,
-		Validating
+		Validating,
+		Opening
 	}
 }

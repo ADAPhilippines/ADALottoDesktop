@@ -9,10 +9,11 @@
 	d:DesignHeight="450"
 	x:Class="ADALotto.Views.NewPassphraseWindow"
 	Icon="/Assets/avalonia-logo.ico"
-	Title="ADALotto"
-	Width="1000" Height="600" MaxWidth="1000" MaxHeight="600" CanResize="false" WindowStartupLocation="CenterOwner">
-
-	<Grid>
-		<TextBlock FontSize="15" Margin="0,0,5,0">Hello World</TextBlock>
-	</Grid>
+	Title="Create a passphrase!"
+	Width="1000" Height="600" MaxWidth="400" MaxHeight="200" CanResize="false" WindowStartupLocation="CenterOwner">
+	<StackPanel>
+		<TextBox Name="NewPassphrase" Watermark="New Passphrase" Padding="10" Margin="20,10" PasswordChar="*" />
+		<TextBox Name="ConfirmPassphrase" Watermark="Confirm Passphrase" Padding="10" Margin="20, 10" PasswordChar="*" />
+		<Button Padding="10" Margin="20, 10" Click="OnBtnDoItPressed">Do it!</Button>
+	</StackPanel>
 </Window>

@@ -39,9 +39,11 @@ namespace ADALotto.Views
 
         private void OnNewWalletRequest(object? sender, EventArgs e)
         {
-            Dispatcher.UIThread.InvokeAsync(() =>
+            Dispatcher.UIThread.InvokeAsync(async () =>
             {
-                new NewPassphraseWindow().ShowDialog(this);
+                var newPassWindow = new NewPassphraseWindow();
+				await newPassWindow.ShowDialog(this);
+				ViewModel?.GenerateWalletWithPass(newPassWindow.Passphrase);
             });
         }
 

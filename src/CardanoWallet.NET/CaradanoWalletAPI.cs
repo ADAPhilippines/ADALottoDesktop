@@ -23,7 +23,7 @@ namespace SAIB.CardanoWallet.NET
         {
             get
             {
-                return "http://localhost:11338/v2";
+                return "http://localhost:11338";
             }
         }
         public static int CardanoWalletPort { get; set; } = 11338;
@@ -94,7 +94,7 @@ namespace SAIB.CardanoWallet.NET
 
         public static async Task<string> RestoreWalletAsync(string name, string[] mnemonic, string passphrase)
         {
-            var result = await HttpPostJsonAsync<WalletResponse, WalletRestorePayload>("/v2/byron-wallets", new WalletRestorePayload
+            var result = await HttpPostJsonAsync<WalletResponse, WalletRestorePayload>("/v2/wallets", new WalletRestorePayload
             {
                 Name = name,
                 MnemonicSeed = mnemonic,
