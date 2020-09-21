@@ -11,13 +11,17 @@ using ShellLink;
 using System.Linq;
 using System.Threading.Tasks;
 using SAIB.CardanoWallet.NET;
+using SAIB.CardanoWallet.NET.Models;
+using QRCoder;
+using Avalonia.Media.Imaging;
+using System.Drawing.Imaging;
 
 namespace ADALotto.ViewModels
 {
     public class MainWindowViewModel : ViewModelBase
     {
-		
-		#region Properties
+
+        #region Properties
         public string DaedalusInstallPath { get; private set; } = string.Empty;
         public string DaedalusStateDir { get; private set; } = string.Empty;
         public Process? CardanoNodeProcess { get; private set; }
@@ -55,6 +59,25 @@ namespace ADALotto.ViewModels
             get => _blockNo;
             set => this.RaiseAndSetIfChanged(ref _blockNo, value);
         }
+        private decimal? _walletBalance = 0;
+        public decimal? WalletBalance
+        {
+            get => _walletBalance;
+            set => this.RaiseAndSetIfChanged(ref _walletBalance, value);
+        }
+        private string? _walletAddress = string.Empty;
+        public string? WalletAddress
+        {
+            get => _walletAddress;
+            set => this.RaiseAndSetIfChanged(ref _walletAddress, value);
+        }
+
+        private Bitmap? _walletQR;
+        public Bitmap? WalletQR
+        {
+            get => _walletQR;
+            set => this.RaiseAndSetIfChanged(ref _walletQR, value);
+        }
         public bool IsSynced
         {
             get
@@ -70,10 +93,10 @@ namespace ADALotto.ViewModels
             }
         }
         public int Digits { get; set; } = 6;
-		#endregion
-		#region Events
-		public event EventHandler? NewWalletRequest;
-		#endregion
+        #endregion
+        #region Events
+        public event EventHandler? NewWalletRequest;
+        #endregion
         #region Constants
         private readonly string CARDANO_SOCKET_PATH = "\"\\\\.\\pipe\\cardano-lotto\"";
         private readonly int CARDANO_PORT = 11337;
@@ -261,8 +284,8 @@ namespace ADALotto.ViewModels
 
                 if (e.Data.Contains("Chain extended"))
                 {
-                    AppStatus = AppStatus.Online;
-                    NodeSyncProgress = 100;
+                    AppStatus = AppStatus == AppStatus.Syncing ? AppStatus.Syncing : AppStatus.Online;
+                    NodeSyncProgress = AppStatus == AppStatus.Syncing ? NodeSyncProgress : 100;
 
                     var metricString = await HttpClient.GetStringAsync("http://127.0.0.1:12798/metrics");
                     var metrics = metricString.Split('\n');
@@ -282,14 +305,14 @@ namespace ADALotto.ViewModels
                     if (!IsWalletStarted)
                     {
                         IsWalletStarted = true;
-                        StartWallet();
+                        await StartWalletAsync();
                     }
 
                 }
             }
         }
 
-        private void StartWallet()
+        private async Task StartWalletAsync()
         {
             var walletPath = Path.Combine(DaedalusInstallPath, "cardano-wallet.exe");
             var walletDbPath = Path.Combine(DaedalusStateDir, "lotto-wallets");
@@ -300,13 +323,67 @@ namespace ADALotto.ViewModels
                 CARADANO_WALLET_PORT
             );
             CardanoWalletAPI.StartWallet();
-			NewWalletRequest?.Invoke(this, new EventArgs());
+            CurrentWallet = await CardanoWalletAPI.GetWalletByNameAsync("adalotto");
+
+            if (CurrentWallet == null)
+                NewWalletRequest?.Invoke(this, new EventArgs());
+            else
+                StartWalletPolling();
         }
 
-		public void GenerateWalletWithPass(string pass)
-		{
-			CurrentWallet = new CardanoWallet("adalotto", pass);
-		}
+        private void StartWalletPolling()
+        {
+            new Thread(new ThreadStart(async () =>
+            {
+                while (true)
+                {
+                    if (CurrentWallet != null)
+                    {
+                        await CurrentWallet.RefreshAsync();
+                        if (CurrentWallet.State != null && CurrentWallet.State.Status == WalletStatus.Syncing)
+                        {
+                            AppStatus = AppStatus.Syncing;
+                            if (CurrentWallet.State.Progress != null)
+                                NodeSyncProgress = Math.Round(CurrentWallet.State?.Progress?.Quantity ?? 0, 2);
+                        }
+                        else if (CurrentWallet.State != null && CurrentWallet.State.Status == WalletStatus.Ready)
+                        {
+                            AppStatus = AppStatus.Online;
+                            NodeSyncProgress = 100;
+                        }
+                        WalletBalance = Math.Round(CardanoWalletAPI.LovelaceToAda(CurrentWallet.Balance?.Total?.Quantity), 2);
+                        if (WalletAddress == null || WalletAddress == string.Empty)
+                        {
+                            WalletAddress = CurrentWallet.Addresses.FirstOrDefault().Id ?? string.Empty;
+                            GenerateAddressQR();
+                        }
+                    }
+                    await Task.Delay(1000);
+                }
+            })).Start();
+        }
+
+        private void GenerateAddressQR()
+        {
+            QRCodeGenerator qrGenerator = new QRCodeGenerator();
+            QRCodeData qrCodeData = qrGenerator.CreateQrCode(WalletAddress, QRCodeGenerator.ECCLevel.Q);
+            QRCode qrCode = new QRCode(qrCodeData);
+            var qrCodeAsBitmap = qrCode.GetGraphic(20);
+            using var memStream = new MemoryStream();
+            qrCodeAsBitmap.Save(Path.Combine(TempPath, "lotto-qr.jpg"), ImageFormat.Jpeg);
+            WalletQR = new Bitmap(Path.Combine(TempPath, "lotto-qr.jpg"));
+        }
+
+        public void GenerateWalletWithPass(string pass)
+        {
+            CurrentWallet = new CardanoWallet("adalotto", pass);
+            CurrentWallet.WalletRestoring += OnWalletRestoring;
+        }
+
+        private void OnWalletRestoring(object? sender, EventArgs e)
+        {
+            StartWalletPolling();
+        }
 
         public void StopNode()
         {

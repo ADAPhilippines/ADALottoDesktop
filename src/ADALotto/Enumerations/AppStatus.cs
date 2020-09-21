@@ -6,6 +6,7 @@ namespace ADALotto.Enumerations
 		Starting,
 		Online,
 		Validating,
-		Opening
+		Opening,
+		Syncing
 	}
 }

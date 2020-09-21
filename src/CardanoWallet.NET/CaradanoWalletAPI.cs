@@ -103,14 +103,26 @@ namespace SAIB.CardanoWallet.NET
             return result.Id;
         }
 
-        public static async Task<WalletResponse> GetWalletByIdAsync(string id)
+        public static async Task<WalletResponse> GetWalletsByIdAsync(string id)
         {
             return await HttpGetAsync<WalletResponse>($"/v2/wallets/{id}");
         }
 
+        public static async Task<CardanoWallet?> GetWalletByNameAsync(string name)
+        {
+            var response = await HttpGetAsync<IEnumerable<WalletResponse>>("/v2/wallets");
+            var walletResp = response.Where(w => w.Name == name).FirstOrDefault();
+            return walletResp != null ? new CardanoWallet(walletResp) : null;
+        }
+
+        public static async Task<IEnumerable<WalletAddress>> GetWalletAddressesAsync(string id)
+        {
+            return await HttpGetAsync<IEnumerable<WalletAddress>>($"/v2/wallets/{id}/addresses");
+        }
+
         public static async Task<string> GenerateAddressByWalletIdAsync(string id, string passphrase, long? index = null)
         {
-            var result = await HttpPostJsonAsync<GenerateAddressResponse, GenerateAddressPayload>($"/v2/byron-wallets/{id}/addresses", new GenerateAddressPayload
+            var result = await HttpPostJsonAsync<GenerateAddressResponse, GenerateAddressPayload>($"/v2/wallets/{id}/addresses", new GenerateAddressPayload
             {
                 Passphrase = passphrase,
                 AddressIndex = index
@@ -190,9 +202,12 @@ namespace SAIB.CardanoWallet.NET
             return (long)(ada * 1000000);
         }
 
-        public static decimal LovelaceToAda(long lovelace)
+        public static decimal LovelaceToAda(long? lovelace)
         {
-            return Math.Round(((decimal)lovelace / (decimal)1000000), 6);
+            if(lovelace != null)
+                return Math.Round(((decimal)lovelace / (decimal)1000000), 6);
+            else
+                return 0;
         }
     }
 }

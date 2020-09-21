@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using SAIB.CardanoWallet.NET.Models;
+using SAIB.CardanoWallet.NET.Models.Responses;
 
 namespace SAIB.CardanoWallet.NET
 {
@@ -37,6 +38,10 @@ namespace SAIB.CardanoWallet.NET
         public WalletBalance Balance { get; private set; } = new WalletBalance();
         public WalletState State { get; private set; } = new WalletState();
         public Tip Tip { get; private set; } = new Tip();
+        public IEnumerable<WalletAddress>? Addresses { get; private set; }
+        #region Events
+        public event EventHandler? WalletRestoring;
+        #endregion
 
         #region Constructors
         /// <summary>
@@ -57,6 +62,14 @@ namespace SAIB.CardanoWallet.NET
             Name = name;
             _passphrase = passphase;
         }
+
+        public CardanoWallet(WalletResponse walletData)
+        {
+            Id = walletData.Id;
+            Name = walletData.Name;
+            _passphrase = string.Empty;
+            RefreshAsync(walletData);
+        }
         #endregion
 
         #region Private Methods
@@ -64,16 +77,23 @@ namespace SAIB.CardanoWallet.NET
         {
             _mnemonics = await CardanoWalletAPI.GenerateMnemonicsAsync();
             Id = await CardanoWalletAPI.RestoreWalletAsync(Name, _mnemonics, _passphrase);
+            WalletRestoring?.Invoke(this, new EventArgs());
         }
         #endregion
 
         public async Task RefreshAsync()
         {
-            var walletResponse = await CardanoWalletAPI.GetWalletByIdAsync(Id);
+            var walletResponse = await CardanoWalletAPI.GetWalletsByIdAsync(Id);
+            await RefreshAsync(walletResponse);
+        }
+
+        private async Task RefreshAsync(WalletResponse walletResponse)
+        {
             Balance = walletResponse.Balance ?? Balance;
             Name = walletResponse.Name;
             State = walletResponse.State ?? State;
             Tip = walletResponse.Tip ?? Tip;
+            Addresses = await CardanoWalletAPI.GetWalletAddressesAsync(Id);
         }
 
         public async Task<string> GenerateAddressAsync(long? index = null)

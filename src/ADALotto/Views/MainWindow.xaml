@@ -26,6 +26,7 @@
 			<StackPanel Grid.Column="0" Margin="20">
 				<StackPanel Orientation="Horizontal">
 					<TextBlock FontSize="15" Margin="0,0,5,0">Node Status:</TextBlock>
+					<TextBlock FontSize="15" FontWeight="Bold" Foreground="#5D437C"  Text=" "/>
 					<TextBlock FontSize="15" FontWeight="Bold" Foreground="#E1B754" Text="{Binding AppStatus, Converter={StaticResource AppStatusConverter}}" />
 					<TextBlock FontSize="15" Margin="5,0">-</TextBlock>
 					<TextBlock FontSize="15" Text="{Binding NodeSyncProgress}"/>
@@ -33,17 +34,26 @@
 				</StackPanel>
 				<StackPanel Orientation="Horizontal">
 					<TextBlock FontSize="15" Margin="0,0,5,0">Epoch:</TextBlock>
+					<TextBlock FontSize="15" FontWeight="Bold" Foreground="#5D437C"  Text=" "/>
 					<TextBlock FontSize="15" FontWeight="Bold" Foreground="#5D437C" Text="{Binding Epoch}"/>
 				</StackPanel>
 				<StackPanel Orientation="Horizontal">
 					<TextBlock FontSize="15" Margin="0,0,5,0">Slot:</TextBlock>
+					<TextBlock FontSize="15" FontWeight="Bold" Foreground="#5D437C"  Text=" "/>
 					<TextBlock FontSize="15" FontWeight="Bold" Foreground="#5D437C"  Text="{Binding SlotInEpoch}"/>
 				</StackPanel>
 				<StackPanel Orientation="Horizontal">
 					<TextBlock FontSize="15" Margin="0,0,5,0">Block#:</TextBlock>
+					<TextBlock FontSize="15" FontWeight="Bold" Foreground="#5D437C"  Text=" "/>
 					<TextBlock FontSize="15" FontWeight="Bold" Foreground="#5D437C"  Text="{Binding BlockNo}"/>
 				</StackPanel>
-				<TextBlock FontSize="15">Balance: ₳0</TextBlock>
+				<StackPanel Orientation="Horizontal">
+					<TextBlock FontSize="15" Margin="0,0,5,0">Balance:</TextBlock>
+					<TextBlock FontSize="15" FontWeight="Bold" Foreground="#5D437C"  Text=" "/>
+					<TextBlock FontSize="15" FontWeight="Bold" Foreground="#5D437C"  Text="₳"/>
+					<TextBlock FontSize="15" FontWeight="Bold" Foreground="#5D437C"  Text=" "/>
+					<TextBlock FontSize="15" FontWeight="Bold" Foreground="#5D437C"  Text="{Binding WalletBalance}"/>
+				</StackPanel>
 				<Button Margin="10" IsEnabled="{Binding IsSynced}">Withdraw</Button>
 			</StackPanel>
 			<StackPanel Grid.Column="1">
@@ -62,7 +72,8 @@
 			</StackPanel>
 			<StackPanel Grid.Column="2" Margin="20">
 				<TextBlock FontSize="15" TextAlignment="Center">Deposit</TextBlock>
-				<Image Width="150" Height="150" Source="/Assets/qr.png" Margin="10"></Image>
+				<Image Width="130" Height="130" Source="{Binding WalletQR}" Margin="10"></Image>
+				<TextBox IsReadOnly="true" Text="{Binding WalletAddress}" Watermark="Wallet Address" />
 			</StackPanel>
 		</Grid>
 		<Grid ShowGridLines="true" ColumnDefinitions="1*,1*" RowDefinitions="Auto" DockPanel.Dock="Top">
