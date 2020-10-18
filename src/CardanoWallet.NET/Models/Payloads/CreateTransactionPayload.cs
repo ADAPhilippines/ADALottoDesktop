@@ -11,5 +11,8 @@ namespace SAIB.CardanoWallet.NET.Models.Payloads
 
         [JsonPropertyName("passphrase")]
         public string Passphrase { get; set; } = string.Empty;
+
+        [JsonPropertyName("metadata")]
+        public string Metadata { get; set; } = string.Empty;
     }
 }

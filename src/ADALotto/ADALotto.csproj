@@ -24,12 +24,12 @@
 		<PackageReference Include="securifybv.ShellLink" Version="0.1.0" />
 	</ItemGroup>
 	<ItemGroup>
+	  <ProjectReference Include="..\CardanoWallet.NET\CardanoWallet.NET.csproj" />
+	</ItemGroup>
+	<ItemGroup>
 		<Content Remove="config/config.json" />
 	</ItemGroup>
 	<ItemGroup>
 		<EmbeddedResource Include="config/config.json" />
-	</ItemGroup>
-	<ItemGroup>
-	  <ProjectReference Include="..\CardanoWallet.NET\CardanoWallet.NET.csproj" />
 	</ItemGroup>
 </Project>

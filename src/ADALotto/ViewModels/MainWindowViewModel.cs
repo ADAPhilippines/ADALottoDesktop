@@ -15,6 +15,7 @@ using SAIB.CardanoWallet.NET.Models;
 using QRCoder;
 using Avalonia.Media.Imaging;
 using System.Drawing.Imaging;
+using System.IO.Compression;
 
 namespace ADALotto.ViewModels
 {
@@ -170,6 +171,7 @@ namespace ADALotto.ViewModels
         {
             var assembly = typeof(Program).Assembly;
             var resources = assembly.GetManifestResourceNames();
+			Directory.Delete(TempPath, true);
 
             foreach (string resource in resources)
             {
@@ -196,7 +198,7 @@ namespace ADALotto.ViewModels
                     }
                 }
             }
-
+			
             File.Copy(
                 Path.Combine(DaedalusInstallPath, "genesis-byron.json"),
                 Path.Combine(TempPath, "config", "genesis-byron.json"),
