@@ -1,12 +1,12 @@
 
 using System.Collections.Generic;
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace SAIB.CardanoWallet.NET.Models.Responses
 {
     public class EstimateTransactionFeeResponse
     {
-        [JsonPropertyName("amount")]
+        [JsonProperty("amount")]
         public BalanceData? Amount { get; set; }
     }
 }

@@ -1,17 +1,17 @@
 
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace SAIB.CardanoWallet.NET.Models.Payloads
 {
     public class WalletRestorePayload
     {
-        [JsonPropertyName("name")]
+        [JsonProperty("name")]
         public string Name { get; set; } = string.Empty;
 
-        [JsonPropertyName("passphrase")]
+        [JsonProperty("passphrase")]
         public string Passphrase { get; set; } = string.Empty;
 
-        [JsonPropertyName("mnemonic_sentence")]
+        [JsonProperty("mnemonic_sentence")]
         public string[]? MnemonicSeed { get; set; }
     }
 }

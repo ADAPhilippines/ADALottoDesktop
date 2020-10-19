@@ -1,15 +1,15 @@
 using System;
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace SAIB.CardanoWallet.NET.Models
 {
     public class Epoch
     {
 
-        [JsonPropertyName("epoch_start_time")]
+        [JsonProperty("epoch_start_time")]
         public DateTime StartTime { get; set; }
 
-        [JsonPropertyName("epoch_number")]
+        [JsonProperty("epoch_number")]
         public long Number { get; set; }
     }
 }

@@ -1,14 +1,14 @@
 using System;
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace SAIB.CardanoWallet.NET.Models
 {
     public class Payment
     {
-        [JsonPropertyName("address")]
+        [JsonProperty("address")]
         public string Address { get; set; } = string.Empty;
 
-        [JsonPropertyName("amount")]
+        [JsonProperty("amount")]
         public BalanceData? Amount { get; set; }
     }
 }

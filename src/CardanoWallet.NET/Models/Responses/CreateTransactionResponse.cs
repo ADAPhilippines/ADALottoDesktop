@@ -1,16 +1,16 @@
 
 using System.Collections.Generic;
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace SAIB.CardanoWallet.NET.Models.Responses
 {
     public class CreateTransactionResponse
     {
 
-        [JsonPropertyName("id")]
+        [JsonProperty("id")]
         public string Id { get; set; } = string.Empty;
 
-        [JsonPropertyName("amount")]
+        [JsonProperty("amount")]
         public BalanceData? Amount { get; set; }
     }
 }

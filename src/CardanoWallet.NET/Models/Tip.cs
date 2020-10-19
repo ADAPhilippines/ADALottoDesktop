@@ -1,17 +1,17 @@
 using System;
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace SAIB.CardanoWallet.NET.Models
 {
     public class Tip
     {
-        [JsonPropertyName("epoch_number")]
+        [JsonProperty("epoch_number")]
         public long Epoch { get; set; }
 
-        [JsonPropertyName("slot_number")]
+        [JsonProperty("slot_number")]
         public long Slot { get; set; }
 
-        [JsonPropertyName("height")]
+        [JsonProperty("height")]
         public Height? Height { get; set; }
     }
 }

@@ -1,15 +1,15 @@
 
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace SAIB.CardanoWallet.NET.Models.Payloads
 {
     public class GenerateAddressPayload
     {
 
-        [JsonPropertyName("passphrase")]
+        [JsonProperty("passphrase")]
         public string Passphrase { get; set; } = string.Empty;
 
-        [JsonPropertyName("address_index")]
+        [JsonProperty("address_index")]
         public long? AddressIndex { get; set; }
     }
 }

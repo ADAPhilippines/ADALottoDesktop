@@ -1,15 +1,14 @@
-
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace SAIB.CardanoWallet.NET.Models.Responses
 {
     public class GenerateAddressResponse
     {
 
-        [JsonPropertyName("id")]
+        [JsonProperty("id")]
         public string Id { get; set; } = string.Empty;
 
-        [JsonPropertyName("state")]
+        [JsonProperty("state")]
         public WalletAddressState State { get; set; }
     }
 }

@@ -1,5 +1,5 @@
 using System;
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace SAIB.CardanoWallet.NET.Models
 {
@@ -12,10 +12,10 @@ namespace SAIB.CardanoWallet.NET.Models
 
     public class SyncProgress
     {
-        [JsonPropertyName("status")]
+        [JsonProperty("status")]
         public SyncStatus Status { get; set; }
 
-        [JsonPropertyName("progress")]
+        [JsonProperty("progress")]
         public ProgressData? Progress { get; set; }
     }
 }

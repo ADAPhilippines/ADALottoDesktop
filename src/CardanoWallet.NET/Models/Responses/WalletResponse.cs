@@ -1,23 +1,22 @@
-
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace SAIB.CardanoWallet.NET.Models.Responses
 {
     public class WalletResponse
     {
-        [JsonPropertyName("id")]
+        [JsonProperty("id")]
         public string Id { get; set; } = string.Empty;
 
-        [JsonPropertyName("balance")]
+        [JsonProperty("balance")]
         public WalletBalance? Balance { get; set; }
 
-        [JsonPropertyName("name")]
+        [JsonProperty("name")]
         public string Name { get; set; } = string.Empty;
 
-        [JsonPropertyName("state")]
+        [JsonProperty("state")]
         public WalletState? State { get; set; }
 
-        [JsonPropertyName("tip")]
+        [JsonProperty("tip")]
         public Tip? Tip { get; set; }
     }
 }

@@ -1,18 +1,18 @@
 
 using System.Collections.Generic;
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace SAIB.CardanoWallet.NET.Models.Payloads
 {
     public class CreateTransactionPayload
     {
-        [JsonPropertyName("payments")]
+        [JsonProperty("payments")]
         public IEnumerable<Payment>? Payments { get; set; }
 
-        [JsonPropertyName("passphrase")]
+        [JsonProperty("passphrase")]
         public string Passphrase { get; set; } = string.Empty;
 
-        [JsonPropertyName("metadata")]
+        [JsonProperty("metadata")]
         public string Metadata { get; set; } = string.Empty;
     }
 }

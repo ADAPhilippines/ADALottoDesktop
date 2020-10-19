@@ -16,6 +16,8 @@ using QRCoder;
 using Avalonia.Media.Imaging;
 using System.Drawing.Imaging;
 using System.IO.Compression;
+using SAIB.CardanoWallet.NET.Helpers;
+using System.Collections.Generic;
 
 namespace ADALotto.ViewModels
 {
@@ -115,6 +117,29 @@ namespace ADALotto.ViewModels
         /// </summary>
         public async Task InitializeCardanoNodeAsync()
         {
+            var a = CardanoTxSerializer.Serialize(new Test
+            {
+                Name = "Clark",
+                Age = 24,
+                Sibling = new Test
+                {
+                    Name = "NoOne",
+                    Age = 15
+                },
+                Siblings = new List<Test> {
+					new Test
+					{
+						Name = "NoTwo",
+						Age = 18
+					},
+					new Test
+					{
+						Name = "NoThree",
+						Age = 18
+					}
+				}
+            });
+
             await Task.Run(() =>
             {
                 AppStatus = AppStatus.Starting;
@@ -171,7 +196,7 @@ namespace ADALotto.ViewModels
         {
             var assembly = typeof(Program).Assembly;
             var resources = assembly.GetManifestResourceNames();
-			Directory.Delete(TempPath, true);
+            Directory.Delete(TempPath, true);
 
             foreach (string resource in resources)
             {
@@ -198,7 +223,7 @@ namespace ADALotto.ViewModels
                     }
                 }
             }
-			
+
             File.Copy(
                 Path.Combine(DaedalusInstallPath, "genesis-byron.json"),
                 Path.Combine(TempPath, "config", "genesis-byron.json"),

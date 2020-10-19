@@ -1,14 +1,14 @@
 using System;
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace SAIB.CardanoWallet.NET.Models
 {
     public class WalletState
     {
-        [JsonPropertyName("status")]
+        [JsonProperty("status")]
         public WalletStatus Status { get; set; }
 
-        [JsonPropertyName("progress")]
+        [JsonProperty("progress")]
         public ProgressData? Progress { get; set; }
     }
 }

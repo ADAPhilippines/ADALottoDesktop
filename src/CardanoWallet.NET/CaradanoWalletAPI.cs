@@ -4,15 +4,15 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using CliWrap;
 using CliWrap.Buffered;
-using System.Text.Json;
 using SAIB.CardanoWallet.NET.Models;
 using SAIB.CardanoWallet.NET.Models.Payloads;
 using System;
-using System.Text.Json.Serialization;
 using SAIB.CardanoWallet.NET.Models.Responses;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 
 namespace SAIB.CardanoWallet.NET
 {
@@ -31,7 +31,6 @@ namespace SAIB.CardanoWallet.NET
         public static string CardanoWalletDatabasePath { get; set; } = string.Empty;
         private static HttpClient HttpClient { get; set; } = new HttpClient();
         private static Process? WalletProcess { get; set; }
-        private static JsonSerializerOptions SerializerOptions { get; set; } = new JsonSerializerOptions();
 
         public static void Initialize(
             string walletBinPath,
@@ -44,7 +43,6 @@ namespace SAIB.CardanoWallet.NET
             CardanoNodeSocketPath = nodeSocketPath;
             CardanoWalletDatabasePath = walletDbPath;
             CardanoWalletPort = walletPort ?? CardanoWalletPort;
-            SerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
         }
 
         public static void StartWallet()
@@ -131,17 +129,6 @@ namespace SAIB.CardanoWallet.NET
             return result.Id;
         }
 
-        public static async Task<long> GetAddressBalanceAsync(string address)
-        {
-            // Temporarily Call Cardano Mainnet Explorer to get address balance
-            var resultString = await HttpClient.GetStringAsync($"https://explorer.mainnet.cardano.org/api/addresses/summary/{address}");
-            using var jsonDoc = JsonDocument.Parse(resultString);
-            var rightObjs = jsonDoc.RootElement.GetProperty("Right");
-            var caBalance = rightObjs.GetProperty("caBalance");
-            var getCoin = caBalance.GetProperty("getCoin");
-            return long.Parse(getCoin.GetString());
-        }
-
         public static async Task<bool> CreateTransactionAsync(string id, string passphrase, IEnumerable<Payment> payments)
         {
             try
@@ -186,15 +173,15 @@ namespace SAIB.CardanoWallet.NET
         private static async Task<T> HttpGetAsync<T>(string url)
         {
             var resultString = await HttpClient.GetStringAsync($"{CardanoWalletEndpoint}{url}");
-            return JsonSerializer.Deserialize<T>(resultString, SerializerOptions);
+            return JsonConvert.DeserializeObject<T>(resultString);
         }
 
         private static async Task<R> HttpPostJsonAsync<R, P>(string url, P payload)
         {
-            var jsonPayload = JsonSerializer.Serialize(payload, SerializerOptions);
+            var jsonPayload = JsonConvert.SerializeObject(payload);
             var result = await HttpClient.PostAsync($"{CardanoWalletEndpoint}{url}", new StringContent(jsonPayload, Encoding.UTF8, "application/json"));
             var resultString = await result.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<R>(resultString, SerializerOptions);
+            return JsonConvert.DeserializeObject<R>(resultString);
         }
 
         public static long AdaToLovelace(decimal ada)

@@ -68,7 +68,6 @@ namespace SAIB.CardanoWallet.NET
             Id = walletData.Id;
             Name = walletData.Name;
             _passphrase = string.Empty;
-            RefreshAsync(walletData);
         }
         #endregion
 
