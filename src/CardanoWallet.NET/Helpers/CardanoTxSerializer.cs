@@ -79,7 +79,7 @@ namespace SAIB.CardanoWallet.NET.Helpers
             }
             else if (value is object)
             {
-                result = new Dictionary<string, string>() { { "map", Serialize(value) } };
+                result = new Dictionary<string, object>() { { "map", ConvertToCardanoObject(value) } };
             }
             return result;
         }
