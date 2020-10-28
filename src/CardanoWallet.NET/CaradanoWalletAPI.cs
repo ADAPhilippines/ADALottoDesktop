@@ -13,13 +13,14 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
+using SAIB.CardanoWallet.NET.Helpers;
 
 namespace SAIB.CardanoWallet.NET
 {
     public class CardanoWalletAPI
     {
         public static string CardanoWalletBinaryPath { get; set; } = string.Empty;
-        public static string CardanoWalletEndpoint 
+        public static string CardanoWalletEndpoint
         {
             get
             {
@@ -129,38 +130,31 @@ namespace SAIB.CardanoWallet.NET
             return result.Id;
         }
 
-        public static async Task<bool> CreateTransactionAsync(string id, string passphrase, IEnumerable<Payment> payments)
+        public static async Task<string> CreateTransactionAsync(string walletId, string passphrase, IEnumerable<Payment> payments, object? metadata = null)
         {
-            try
+            var result = await HttpPostJsonAsync<CreateTransactionResponse, CreateTransactionPayload>($"/v2/wallets/{walletId}/transactions", new CreateTransactionPayload
             {
-                var result = await HttpPostJsonAsync<CreateTransactionResponse, CreateTransactionPayload>($"/v2/byron-wallets/{id}/transactions", new CreateTransactionPayload
-                {
-                    Payments = payments,
-                    Passphrase = passphrase
-                });
-
-                return result.Id != string.Empty;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-                return false;
-            }
+                Payments = payments,
+                Passphrase = passphrase,
+                Metadata = CardanoTxSerializer.ToMetaDataPayload(metadata)
+            });
+            return result.Id;
         }
 
-        public static async Task<long> EstimateTransactionFeeAsync(string id, IEnumerable<Payment> payments)
+        public static async Task<long> EstimateTransactionFeeAsync(string walletId, IEnumerable<Payment> payments, object? metadata = null)
         {
-            var result = long.MaxValue;
+            long result = 0;
             try
             {
-                var pResult = await HttpPostJsonAsync<EstimateTransactionFeeResponse, EstimateTransactionFeePayload>($"/v2/byron-wallets/{id}/payment-fees",
+                var pResult = await HttpPostJsonAsync<EstimateTransactionFeeResponse, EstimateTransactionFeePayload>($"/v2/wallets/{walletId}/payment-fees",
                     new EstimateTransactionFeePayload
                     {
-                        Payments = payments
+                        Payments = payments,
+                        Metadata = CardanoTxSerializer.ToMetaDataPayload(metadata)
                     });
 
-                if (pResult != null && pResult.Amount != null)
-                    result = pResult.Amount.Quantity;
+                if (pResult != null && pResult.EstimatedMaximum != null)
+                    result = pResult.EstimatedMaximum.Quantity;
             }
             catch (Exception ex)
             {
@@ -191,7 +185,7 @@ namespace SAIB.CardanoWallet.NET
 
         public static decimal LovelaceToAda(long? lovelace)
         {
-            if(lovelace != null)
+            if (lovelace != null)
                 return Math.Round(((decimal)lovelace / (decimal)1000000), 6);
             else
                 return 0;

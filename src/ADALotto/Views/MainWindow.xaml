@@ -54,7 +54,7 @@
 					<TextBlock FontSize="15" FontWeight="Bold" Foreground="#5D437C"  Text=" "/>
 					<TextBlock FontSize="15" FontWeight="Bold" Foreground="#5D437C"  Text="{Binding WalletBalance}"/>
 				</StackPanel>
-				<Button Margin="10" IsEnabled="{Binding IsSynced}">Withdraw</Button>
+				<Button Margin="10" IsEnabled="{Binding IsSynced}" Command="{Binding Withdraw}">Withdraw</Button>
 			</StackPanel>
 			<StackPanel Grid.Column="1">
 				<TextBlock Text="ADALotto" FontSize="35" HorizontalAlignment="Center" VerticalAlignment="Center" DockPanel.Dock="Top"/>
@@ -68,7 +68,7 @@
 				</StackPanel>
 				<TextBlock Text="Time Remaining: 00:00:00" Margin="10" FontSize="15" HorizontalAlignment="Center" VerticalAlignment="Center" DockPanel.Dock="Top"/>
 				<TextBlock Text="Prize: ₳10,000" FontSize="15" HorizontalAlignment="Center" VerticalAlignment="Center" DockPanel.Dock="Top"/>
-				<Button Command="{Binding Test}" Width="200" HorizontalAlignment="Center" Margin="10">Buy Ticket for ₳1</Button>
+				<Button Command="{Binding BuyTicket}" IsEnabled="{Binding IsSynced}" Width="200" HorizontalAlignment="Center" Margin="10">Buy Ticket for ₳1</Button>
 			</StackPanel>
 			<StackPanel Grid.Column="2" Margin="20">
 				<TextBlock FontSize="15" TextAlignment="Center">Deposit</TextBlock>

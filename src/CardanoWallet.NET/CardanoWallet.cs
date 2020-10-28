@@ -67,7 +67,7 @@ namespace SAIB.CardanoWallet.NET
         {
             Id = walletData.Id;
             Name = walletData.Name;
-            _passphrase = string.Empty;
+            _passphrase = "test123456";
         }
         #endregion
 
@@ -101,7 +101,23 @@ namespace SAIB.CardanoWallet.NET
             return result;
         }
 
-        public async Task<bool> SendAsync(long amount, string address)
+        public async Task<long> EstimateFee(long lovelaceAmount, string address, object? metadata = null)
+        {
+            var payments = new List<Payment>() {
+                new Payment
+                {
+                    Amount = new BalanceData
+                    {
+                        Quantity = lovelaceAmount,
+                        Unit = BalanceUnit.Lovelace
+                    },
+                    Address = address
+                }
+            };
+            return await CardanoWalletAPI.EstimateTransactionFeeAsync(Id, payments, metadata);
+        }
+
+        public async Task<string?> SendAsync(long lovelaceAmount, string address, object? metadata = null)
         {
             await RefreshAsync();
             var payments = new List<Payment>() {
@@ -109,19 +125,19 @@ namespace SAIB.CardanoWallet.NET
                 {
                     Amount = new BalanceData
                     {
-                        Quantity = amount,
+                        Quantity = lovelaceAmount,
                         Unit = BalanceUnit.Lovelace
                     },
                     Address = address
                 }
             };
 
-            var fee = await CardanoWalletAPI.EstimateTransactionFeeAsync(Id, payments);
+            var fee = await CardanoWalletAPI.EstimateTransactionFeeAsync(Id, payments, metadata);
 
-            if (fee + amount > Balance?.Available?.Quantity)
-                return false;
+            if (fee + lovelaceAmount > Balance?.Available?.Quantity)
+                return null;
 
-            return await CardanoWalletAPI.CreateTransactionAsync(Id, _passphrase, payments);
+            return await CardanoWalletAPI.CreateTransactionAsync(Id, _passphrase, payments, metadata);
         }
     }
 }

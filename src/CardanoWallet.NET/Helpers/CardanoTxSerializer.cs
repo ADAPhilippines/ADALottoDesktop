@@ -8,10 +8,32 @@ namespace SAIB.CardanoWallet.NET.Helpers
 {
     public abstract class CardanoTxSerializer
     {
-        public static string Serialize(object o)
+        public static string? Serialize(object? o)
         {
-            var cardanoObject = ConvertToCardanoObject(o);
-            return JsonConvert.SerializeObject(cardanoObject);
+            if (o != null)
+            {
+                var cardanoObject = ConvertToCardanoObject(o);
+                return JsonConvert.SerializeObject(cardanoObject);
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public static object? ToMetaDataPayload(object? o)
+        {
+            if (o != null)
+            {
+                var cardanoObject = ConvertToCardanoObject(o);
+                var result = new Dictionary<string, object>();
+                result.Add("0", new { map = cardanoObject });
+                return result;
+            }
+            else
+            {
+                return null;
+            }
         }
 
         private static object ConvertToCardanoObject(object o)
@@ -32,7 +54,7 @@ namespace SAIB.CardanoWallet.NET.Helpers
         {
             Dictionary<object, object>? resultDict = null;
             var processedValue = ProcessPropertyValue(value);
-            if(processedValue != null)
+            if (processedValue != null)
             {
                 resultDict = new Dictionary<object, object>();
                 resultDict.Add("k", new Dictionary<string, string>() { { "string", name } });
@@ -45,7 +67,7 @@ namespace SAIB.CardanoWallet.NET.Helpers
         {
             object? result = null;
             if (value != null && IsValueAllowed(value))
-            {    
+            {
                 if (value is string)
                 {
                     result = new Dictionary<string, string>() { { "string", (value as string) ?? string.Empty } };
@@ -71,7 +93,7 @@ namespace SAIB.CardanoWallet.NET.Helpers
                     {
                         var pv = ProcessPropertyValue(o);
 
-                        if(pv != null)
+                        if (pv != null)
                             listResult.Add(pv);
                     }
                     result = new Dictionary<string, IEnumerable<object>>() { { "list", listResult } };

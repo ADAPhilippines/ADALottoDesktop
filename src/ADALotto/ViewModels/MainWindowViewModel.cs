@@ -74,7 +74,6 @@ namespace ADALotto.ViewModels
             get => _walletAddress;
             set => this.RaiseAndSetIfChanged(ref _walletAddress, value);
         }
-
         private Bitmap? _walletQR;
         public Bitmap? WalletQR
         {
@@ -95,7 +94,21 @@ namespace ADALotto.ViewModels
                 return AppStatus != AppStatus.Online;
             }
         }
-        public int Digits { get; set; } = 6;
+        public int[]? Combination { get; set; }
+        private int _digits { get; set; }
+        public int Digits
+        {
+            get
+            {
+                return _digits;
+            }
+            set
+            {
+                Combination = new int[value];
+                _digits = value;
+            }
+        }
+
         #endregion
         #region Events
         public event EventHandler? NewWalletRequest;
@@ -117,29 +130,6 @@ namespace ADALotto.ViewModels
         /// </summary>
         public async Task InitializeCardanoNodeAsync()
         {
-            var a = CardanoTxSerializer.Serialize(new Test
-            {
-                Name = "Clark",
-                Age = 24,
-                Sibling = new Test
-                {
-                    Name = "NoOne",
-                    Age = 15
-                },
-                Siblings = new List<Test> {
-					new Test
-					{
-						Name = "NoTwo",
-						Age = 18
-					},
-					new Test
-					{
-						Name = "NoThree",
-						Age = 18
-					}
-				}
-            });
-
             await Task.Run(() =>
             {
                 AppStatus = AppStatus.Starting;
@@ -366,7 +356,7 @@ namespace ADALotto.ViewModels
                 {
                     if (CurrentWallet != null)
                     {
-                        await CurrentWallet.RefreshAsync();
+                        await RefreshWallet();
                         if (CurrentWallet.State != null && CurrentWallet.State.Status == WalletStatus.Syncing)
                         {
                             AppStatus = AppStatus.Syncing;
@@ -378,16 +368,24 @@ namespace ADALotto.ViewModels
                             AppStatus = AppStatus.Online;
                             NodeSyncProgress = 100;
                         }
-                        WalletBalance = Math.Round(CardanoWalletAPI.LovelaceToAda(CurrentWallet.Balance?.Total?.Quantity), 2);
                         if (WalletAddress == null || WalletAddress == string.Empty)
                         {
                             WalletAddress = CurrentWallet.Addresses.FirstOrDefault().Id ?? string.Empty;
                             GenerateAddressQR();
                         }
                     }
-                    await Task.Delay(1000);
+                    await Task.Delay(1000 * 20);
                 }
             })).Start();
+        }
+
+        private async Task RefreshWallet()
+        {
+            if (CurrentWallet != null)
+            {
+                await CurrentWallet.RefreshAsync();
+                WalletBalance = Math.Round(CardanoWalletAPI.LovelaceToAda(CurrentWallet.Balance?.Total?.Quantity), 2);
+            }
         }
 
         private void GenerateAddressQR()
@@ -417,6 +415,35 @@ namespace ADALotto.ViewModels
             CardanoWalletAPI.StopWallet();
             CardanoNodeProcess?.Kill(true);
             AppStatus = AppStatus.Offline;
+        }
+
+        public async Task BuyTicket()
+        {
+            if (CurrentWallet != null && Combination != null)
+            {
+                var txId = await CurrentWallet.SendAsync(1 * 1000000, "addr1q8nrqg4s73skqfyyj69mzr7clpe8s7ux9t8z6l55x2f2xuqra34p9pswlrq86nq63hna7p4vkrcrxznqslkta9eqs2nscfavlf", new LottoTicket
+                {
+                    Combination = Combination
+                });
+                await RefreshWallet();
+            }
+        }
+
+        public async Task Withdraw()
+        {
+            if (CurrentWallet != null && CurrentWallet.Balance.Total != null)
+            {
+                var fee = await CurrentWallet.EstimateFee(
+                    CurrentWallet.Balance.Total.Quantity,
+                    "addr1q8nrqg4s73skqfyyj69mzr7clpe8s7ux9t8z6l55x2f2xuqra34p9pswlrq86nq63hna7p4vkrcrxznqslkta9eqs2nscfavlf");
+
+                var newFee = await CurrentWallet.EstimateFee(
+                    CurrentWallet.Balance.Total.Quantity - fee,
+                    "addr1q8nrqg4s73skqfyyj69mzr7clpe8s7ux9t8z6l55x2f2xuqra34p9pswlrq86nq63hna7p4vkrcrxznqslkta9eqs2nscfavlf");
+
+                var txId = await CurrentWallet.SendAsync(CurrentWallet.Balance.Total.Quantity - newFee, "addr1q8nrqg4s73skqfyyj69mzr7clpe8s7ux9t8z6l55x2f2xuqra34p9pswlrq86nq63hna7p4vkrcrxznqslkta9eqs2nscfavlf");
+                await RefreshWallet();
+            }
         }
     }
 }
