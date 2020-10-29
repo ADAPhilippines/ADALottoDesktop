@@ -1,6 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+using System.Linq;
 using ADALotto.ViewModels;
 using Avalonia;
 using Avalonia.Controls;
@@ -25,21 +24,27 @@ namespace ADALotto.Views
         {
             InitializeComponent();
             Opened += OnOpened;
-#if DEBUG
-            this.AttachDevTools();
-#endif
         }
 
         private async void OnOpened(object? sender, EventArgs e)
         {
             if (ViewModel != null)
             {
-                ViewModel.Digits = 6;
-                GenerateLottoBoxes();
-                await ViewModel.InitializeCardanoNodeAsync();
-                ViewModel.NewWalletRequest += OnNewWalletRequest;
+                // ViewModel.Digits = 6;
+                // GenerateLottoBoxes();
+                // ViewModel.NewWalletRequest += OnNewWalletRequest;
+                // ViewModel.TicketBuyComplete += OnTicketBuyCompleted;
+                // await ViewModel.InitializeCardanoNodeAsync();
+
+				await Dispatcher.UIThread.InvokeAsync(async () =>
+				{
+					var buyConfirmWindow = new BuyConfirmWindow();
+					await buyConfirmWindow.ShowDialog(this);
+				});
             }
         }
+
+        private void OnTicketBuyCompleted(object? sender, EventArgs e) => LottoBoxes.ToList().ForEach(lb => lb.Text = string.Empty);
 
         private void OnNewWalletRequest(object? sender, EventArgs e)
         {
@@ -99,9 +104,9 @@ namespace ADALotto.Views
                 {
                     var isValid = int.TryParse(textBox.Text, out var n);
                     if (isValid)
-					{
+                    {
                         ViewModel.Combination[numberIdx] = n;
-					}
+                    }
                     else
                     {
                         textBox.Text = string.Empty;

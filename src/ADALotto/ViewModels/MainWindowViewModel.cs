@@ -112,6 +112,7 @@ namespace ADALotto.ViewModels
         #endregion
         #region Events
         public event EventHandler? NewWalletRequest;
+        public event EventHandler? TicketBuyComplete;
         #endregion
         #region Constants
         private readonly string CARDANO_SOCKET_PATH = "\"\\\\.\\pipe\\cardano-lotto\"";
@@ -374,7 +375,7 @@ namespace ADALotto.ViewModels
                             GenerateAddressQR();
                         }
                     }
-                    await Task.Delay(1000 * 20);
+                    await Task.Delay(1000 * 10);
                 }
             })).Start();
         }
@@ -425,7 +426,9 @@ namespace ADALotto.ViewModels
                 {
                     Combination = Combination
                 });
+                Combination = new int[Digits];
                 await RefreshWallet();
+                TicketBuyComplete?.Invoke(this, new EventArgs());
             }
         }
 

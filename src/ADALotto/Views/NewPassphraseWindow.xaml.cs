@@ -11,6 +11,7 @@ using MessageBox.Avalonia;
 using MessageBox.Avalonia.DTO;
 using MessageBox.Avalonia.Enums;
 using MessageBoxIcons = MessageBox.Avalonia.Enums.Icon;
+
 namespace ADALotto.Views
 {
     public class NewPassphraseWindow : Window
