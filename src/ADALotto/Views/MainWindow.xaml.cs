@@ -38,7 +38,7 @@ namespace ADALotto.Views
 
 				await Dispatcher.UIThread.InvokeAsync(async () =>
 				{
-					var buyConfirmWindow = new BuyConfirmWindow();
+					var buyConfirmWindow = new WithdrawConfirmWindow();
 					await buyConfirmWindow.ShowDialog(this);
 				});
             }
