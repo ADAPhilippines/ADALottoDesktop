@@ -7,10 +7,11 @@ using Avalonia.Input;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Threading;
+using SAIB.CardanoWallet.NET;
 
 namespace ADALotto.Views
 {
-    public class MainWindow : Window
+    public class MainWindow : FluentWindow
     {
         private TextBox[]? LottoBoxes { get; set; }
         public MainWindowViewModel? ViewModel
@@ -30,17 +31,17 @@ namespace ADALotto.Views
         {
             if (ViewModel != null)
             {
-                // ViewModel.Digits = 6;
-                // GenerateLottoBoxes();
-                // ViewModel.NewWalletRequest += OnNewWalletRequest;
-                // ViewModel.TicketBuyComplete += OnTicketBuyCompleted;
-                // await ViewModel.InitializeCardanoNodeAsync();
+                ViewModel.Digits = 6;
+                GenerateLottoBoxes();
+                ViewModel.NewWalletRequest += OnNewWalletRequest;
+                ViewModel.TicketBuyComplete += OnTicketBuyCompleted;
+                await ViewModel.InitializeCardanoNodeAsync();
 
-				await Dispatcher.UIThread.InvokeAsync(async () =>
-				{
-					var buyConfirmWindow = new WithdrawConfirmWindow();
-					await buyConfirmWindow.ShowDialog(this);
-				});
+				// await Dispatcher.UIThread.InvokeAsync(async () =>
+				// {
+				// 	var buyConfirmWindow = new WithdrawConfirmWindow();
+				// 	await buyConfirmWindow.ShowDialog(this);
+				// });
             }
         }
 
@@ -51,6 +52,7 @@ namespace ADALotto.Views
             Dispatcher.UIThread.InvokeAsync(async () =>
             {
                 var newPassWindow = new NewPassphraseWindow();
+				newPassWindow.Mnemonics = await CardanoWalletAPI.GenerateMnemonicsAsync();
                 await newPassWindow.ShowDialog(this);
                 ViewModel?.GenerateWalletWithPass(newPassWindow.Passphrase);
             });

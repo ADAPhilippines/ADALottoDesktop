@@ -14,10 +14,12 @@ using MessageBoxIcons = MessageBox.Avalonia.Enums.Icon;
 
 namespace ADALotto.Views
 {
-    public class NewPassphraseWindow : Window
+    public class NewPassphraseWindow : FluentWindow
     {
         public string Passphrase { get; private set; } = string.Empty;
         private bool CanClose { get; set; }
+        public string[]? Mnemonics { get; set; }
+
         public NewPassphraseWindow()
         {
             InitializeComponent();
@@ -26,7 +28,14 @@ namespace ADALotto.Views
         private void InitializeComponent()
         {
             AvaloniaXamlLoader.Load(this);
+            Opened += OnWindowOpened;
             Closing += OnWindowClosing;
+        }
+
+        private void OnWindowOpened(object? sender, EventArgs e)
+        {
+            var txtSeed = this.FindControl<TextBox>("txtSeed");
+			txtSeed.Text = string.Join(" ", Mnemonics ?? new string[0]);
         }
 
         private void OnWindowClosing(object? sender, CancelEventArgs e)
@@ -36,9 +45,9 @@ namespace ADALotto.Views
 
         public void OnBtnDoItPressed(object sender, RoutedEventArgs e)
         {
-            var newPass = this.FindControl<TextBox>("NewPassphrase");
-            var confPass = this.FindControl<TextBox>("ConfirmPassphrase");
-            if (newPass.Text == null)
+            var txtNewPass = this.FindControl<TextBox>("txtNewPassphrase");
+            var txtConfPass = this.FindControl<TextBox>("txtConfirmPassphrase");
+            if (txtNewPass.Text == null)
             {
                 var messageBoxStandardWindow = MessageBoxManager
                     .GetMessageBoxStandardWindow(new MessageBoxStandardParams
@@ -50,7 +59,7 @@ namespace ADALotto.Views
                     });
                 messageBoxStandardWindow.Show();
             }
-            else if (newPass.Text.Length < 10 || newPass.Text.Length > 255)
+            else if (txtNewPass.Text.Length < 10 || txtNewPass.Text.Length > 255)
             {
                 var messageBoxStandardWindow = MessageBoxManager
                     .GetMessageBoxStandardWindow(new MessageBoxStandardParams
@@ -62,7 +71,7 @@ namespace ADALotto.Views
                     });
                 messageBoxStandardWindow.Show();
             }
-            else if (newPass.Text != confPass.Text)
+            else if (txtNewPass.Text != txtConfPass.Text)
             {
                 var messageBoxStandardWindow = MessageBoxManager
                     .GetMessageBoxStandardWindow(new MessageBoxStandardParams
@@ -76,7 +85,7 @@ namespace ADALotto.Views
             }
             else
             {
-                Passphrase = newPass.Text;
+                Passphrase = txtNewPass.Text;
                 CanClose = true;
                 this.Close();
             }

@@ -9,11 +9,67 @@
 	d:DesignHeight="450"
 	x:Class="ADALotto.Views.NewPassphraseWindow"
 	Icon="/Assets/avalonia-logo.ico"
-	Title="Create a passphrase!"
-	Width="1000" Height="600" MaxWidth="400" MaxHeight="200" CanResize="false" WindowStartupLocation="CenterOwner">
-	<StackPanel>
-		<TextBox Name="NewPassphrase" Watermark="New Passphrase" Padding="10" Margin="20,10" PasswordChar="*" />
-		<TextBox Name="ConfirmPassphrase" Watermark="Confirm Passphrase" Padding="10" Margin="20, 10" PasswordChar="*" />
-		<Button Padding="10" Margin="20, 10" Click="OnBtnDoItPressed">Do it!</Button>
+	Title="Start!"
+	Width="578" Height="510" MaxWidth="578" MaxHeight="510" CanResize="false" WindowStartupLocation="CenterOwner" Background="#EAE8FB"
+	ExtendClientAreaToDecorationsHint="True"
+    ExtendClientAreaChromeHints="NoChrome"
+    ExtendClientAreaTitleBarHeightHint="-1">
+
+	<Window.Styles>
+        <Style Selector="TextBlock.ALLabel">
+            <Setter Property="FontFamily" Value="avares://ADALotto/Assets/Fonts#Poppins"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontWeight" Value="500"/>
+            <Setter Property="Foreground" Value="Black"/>
+        </Style>
+        <Style Selector="TextBlock.ADASymbol">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontWeight" Value="500"/>
+            <Setter Property="Margin" Value="0,0,4,0"/>
+            <Setter Property="Foreground" Value="Black"/>
+        </Style>
+        <Style Selector="TextBlock.ALLabelKey">
+            <Setter Property="Margin" Value="0,0,7,0"/>
+            <Setter Property="Foreground" Value="Black"/>
+        </Style>
+        <Style Selector="TextBlock.ALLabelValue">
+            <Setter Property="Foreground" Value="#FF603E"/>
+            <Setter Property="Foreground" Value="Black"/>
+        </Style>
+
+		<Style Selector="Button.buy /template/ ContentPresenter">
+			<Setter Property="CornerRadius" Value="45" />
+		</Style>
+		<Style Selector="Button:pointerover.buy /template/ ContentPresenter">
+			<Setter Property="Background" Value="#231B4D"/>
+		</Style>
+
+		<Style Selector="TextBox.pass /template/ Border#border">
+    		<Setter Property="BorderBrush" Value="#FFFFFF"/>
+			<Setter Property="CornerRadius" Value="4" />
+		</Style>
+				
+		<Style Selector="TextBox:pointerover.pass /template/ Border#border">
+			<Setter Property="BorderBrush" Value="#FFFFFF"/>
+		</Style>
+
+    </Window.Styles>
+
+	<StackPanel Margin="40">
+		<TextBlock Classes="ALLabel ALLabelKey" Margin="0,0,0,20">Create a passphrase!</TextBlock>
+		<TextBlock Classes="ALLabel ALLabelKey" Margin="0,0,0,5" FontSize="12" FontStyle="Italic" TextAlignment="Center" Foreground="#DB0A0A">(note: please make a backup of the recovery words)</TextBlock>
+		<TextBox Classes="pass" Background="White" Margin="0,0,0,20" Padding="15" Name="txtSeed" AcceptsReturn="True" TextWrapping="Wrap" IsReadOnly="True" Foreground="#3F3A89" FontSize="18" FontWeight="500" FontFamily="avares://ADALotto/Assets/Fonts#Poppins"/>
+		<TextBox Classes="pass" Background="White" Margin="0,0,0,20" Padding="15" Name="txtNewPassphrase" Watermark="New Passphrase" Foreground="Black" PasswordChar="*" FontSize="18" FontWeight="500" FontFamily="avares://ADALotto/Assets/Fonts#Poppins"/>
+		<TextBox Classes="pass" Background="White" Margin="0,0,0,30" Padding="15" Name="txtConfirmPassphrase" Watermark="Confirm Passphrase" Foreground="Black"  PasswordChar="*" FontSize="18" FontWeight="500" FontFamily="avares://ADALotto/Assets/Fonts#Poppins"/>
+		<Button
+			Classes="buy"
+			Background="#FF7235" 
+			BorderBrush="#FF7235"
+			BorderThickness="0"
+			Width="221"
+			Height="46"
+			Click="OnBtnDoItPressed">
+			<TextBlock FontSize="21" FontWeight="500" FontFamily="avares://ADALotto/Assets/Fonts#Poppins" Foreground="White">Start</TextBlock>
+		</Button>
 	</StackPanel>
 </Window>
