@@ -3,10 +3,10 @@ namespace ADALotto.Enumerations
 	public enum AppStatus
 	{
 		Offline,
-		Starting,
+		Connecting,
 		Online,
-		Validating,
-		Opening,
+		Verifying,
+		LoadingData,
 		Syncing
 	}
 }

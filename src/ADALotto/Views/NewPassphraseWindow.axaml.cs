@@ -35,7 +35,7 @@ namespace ADALotto.Views
         private void OnWindowOpened(object? sender, EventArgs e)
         {
             var txtSeed = this.FindControl<TextBox>("txtSeed");
-			txtSeed.Text = string.Join(" ", Mnemonics ?? new string[0]);
+            txtSeed.Text = string.Join(" ", Mnemonics ?? new string[0]);
         }
 
         private void OnWindowClosing(object? sender, CancelEventArgs e)
@@ -49,39 +49,15 @@ namespace ADALotto.Views
             var txtConfPass = this.FindControl<TextBox>("txtConfirmPassphrase");
             if (txtNewPass.Text == null)
             {
-                var messageBoxStandardWindow = MessageBoxManager
-                    .GetMessageBoxStandardWindow(new MessageBoxStandardParams
-                    {
-                        ButtonDefinitions = ButtonEnum.Ok,
-                        ContentTitle = "Error",
-                        ContentMessage = "You must enter a passphrase!",
-                        Icon = MessageBoxIcons.Error
-                    });
-                messageBoxStandardWindow.Show();
+                MessageBox.Show("Error", "You must enter a passphrase!", "Ok", this);
             }
             else if (txtNewPass.Text.Length < 10 || txtNewPass.Text.Length > 255)
             {
-                var messageBoxStandardWindow = MessageBoxManager
-                    .GetMessageBoxStandardWindow(new MessageBoxStandardParams
-                    {
-                        ButtonDefinitions = ButtonEnum.Ok,
-                        ContentTitle = "Error",
-                        ContentMessage = "Passphrase must be between 10 to 255 characters!",
-                        Icon = MessageBoxIcons.Error
-                    });
-                messageBoxStandardWindow.Show();
+                MessageBox.Show("Error", "Passphrase must be between 10 to 255 characters!", "Ok", this);
             }
             else if (txtNewPass.Text != txtConfPass.Text)
             {
-                var messageBoxStandardWindow = MessageBoxManager
-                    .GetMessageBoxStandardWindow(new MessageBoxStandardParams
-                    {
-                        ButtonDefinitions = ButtonEnum.Ok,
-                        ContentTitle = "Error",
-                        ContentMessage = "Passphrase must match!",
-                        Icon = MessageBoxIcons.Error
-                    });
-                messageBoxStandardWindow.Show();
+                MessageBox.Show("Error", "Passphrase must match!", "Ok", this);
             }
             else
             {

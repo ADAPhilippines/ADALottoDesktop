@@ -133,7 +133,7 @@ namespace ADALotto.ViewModels
         {
             await Task.Run(() =>
             {
-                AppStatus = AppStatus.Starting;
+                AppStatus = AppStatus.Connecting;
                 // Get Start Menu Daedalus Link
                 var startMenuPath = Environment.GetFolderPath(Environment.SpecialFolder.StartMenu);
                 var daedalusShortcut = Path.Combine(startMenuPath, "Programs", "Daedalus Mainnet", "Daedalus Mainnet.lnk");
@@ -287,7 +287,7 @@ namespace ADALotto.ViewModels
                 Console.WriteLine(e.Data);
                 if (e.Data.Contains("block replay progress (%)"))
                 {
-                    AppStatus = AppStatus.Validating;
+                    AppStatus = AppStatus.Verifying;
                     var dataSplt = e.Data.Split("=");
                     double p = 0;
                     double.TryParse(dataSplt[1], out p);
@@ -296,7 +296,7 @@ namespace ADALotto.ViewModels
 
                 if (e.Data.Contains("Opened lgr db"))
                 {
-                    AppStatus = AppStatus.Opening;
+                    AppStatus = AppStatus.Verifying;
                     NodeSyncProgress = 100;
                 }
 

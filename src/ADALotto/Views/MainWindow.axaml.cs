@@ -77,9 +77,8 @@ namespace ADALotto.Views
             for (int x = 0; x < digits; x++)
             {
                 var newLottoBox = new TextBox();
-                newLottoBox.Watermark = "00";
-                newLottoBox.Width = 43;
-                newLottoBox.FontSize = 30;
+				newLottoBox.Classes.Add("lottobox");
+                newLottoBox.Watermark = "??";
                 newLottoBox.TextAlignment = TextAlignment.Center;
                 newLottoBox.KeyUp += OnLottNumberInput;
                 newLottoBox.Tag = x;
