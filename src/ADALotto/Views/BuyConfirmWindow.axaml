@@ -28,6 +28,7 @@
         </Style>
         <Style Selector="TextBlock.ALLabelKey">
             <Setter Property="Margin" Value="0,0,7,0"/>
+            <Setter Property="Foreground" Value="Black"/>
         </Style>
         <Style Selector="TextBlock.ALLabelValue">
             <Setter Property="Foreground" Value="#FF603E"/>
@@ -38,6 +39,11 @@
 		</Style>
 		<Style Selector="Button:pointerover.buy /template/ ContentPresenter">
 			<Setter Property="Background" Value="#231B4D"/>
+		</Style>
+
+		<Style Selector="TextBox.pass">
+            <Setter Property="Foreground" Value="Black"/>
+            <Setter Property="Background" Value="White"/>
 		</Style>
 
 		<Style Selector="TextBox.pass /template/ Border#border">
@@ -54,7 +60,7 @@
 	<StackPanel Margin="40">
 		<StackPanel Orientation="Horizontal">
 			<TextBlock Classes="ALLabel ALLabelKey">Combination:</TextBlock>
-			<TextBlock Classes="ALLabel ALLabelValue">01-02-03-04-05-06</TextBlock>
+			<TextBlock Name="txtCombination" Classes="ALLabel ALLabelValue"/>
 		</StackPanel>
 		<StackPanel Orientation="Horizontal" Margin="0,16,0,16">
 			<TextBlock Foreground="#ACACAC">--------------------------------------------------------------------------------------------------------</TextBlock>
@@ -62,7 +68,7 @@
 		<StackPanel Orientation="Horizontal">
 			<TextBlock Classes="ALLabel ALLabelKey">Ticket Price:</TextBlock>
 			<TextBlock Classes="ADASymbol ALLabelValue">₳</TextBlock>
-			<TextBlock Classes="ALLabel ALLabelValue">1.000000</TextBlock>
+			<TextBlock Name="txtPrice" Classes="ALLabel ALLabelValue" />
 		</StackPanel>
 		<StackPanel Orientation="Horizontal" Margin="0,16,0,16">
 			<TextBlock Foreground="#ACACAC">--------------------------------------------------------------------------------------------------------</TextBlock>
@@ -70,7 +76,7 @@
 		<StackPanel Orientation="Horizontal">
 			<TextBlock Classes="ALLabel ALLabelKey">Fee:</TextBlock>
 			<TextBlock Classes="ADASymbol ALLabelValue">₳</TextBlock>
-			<TextBlock Classes="ALLabel ALLabelValue">0.180000</TextBlock>
+			<TextBlock Name="txtFee" Classes="ALLabel ALLabelValue"/>
 		</StackPanel>
 		<StackPanel Orientation="Horizontal" Margin="0,16,0,16">
 			<TextBlock Foreground="#ACACAC">--------------------------------------------------------------------------------------------------------</TextBlock>
@@ -78,9 +84,9 @@
 		<StackPanel Orientation="Horizontal" Margin="0,0,0,72">
 			<TextBlock Classes="ALLabel ALLabelKey">Total:</TextBlock>
 			<TextBlock Classes="ADASymbol ALLabelValue">₳</TextBlock>
-			<TextBlock Classes="ALLabel ALLabelValue">1.180000</TextBlock>
+			<TextBlock Name="txtTotal" Classes="ALLabel ALLabelValue"/>
 		</StackPanel>
-		<TextBlock Classes="ALLabel" Margin="0,0,0,16">Passphrase:</TextBlock>
+		<TextBlock Classes="ALLabel" Margin="0,0,0,16" Foreground="Black">Passphrase:</TextBlock>
 		<TextBox Classes="pass" Name="Passphrase" Padding="15" Watermark="Enter your spending password..." PasswordChar="*"  Margin="0,0,0,30" FontSize="18" FontWeight="500" FontFamily="avares://ADALotto/Assets/Fonts#Poppins"/>
 		<Button
 			Classes="buy"

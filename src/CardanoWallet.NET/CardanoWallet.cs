@@ -33,7 +33,7 @@ namespace SAIB.CardanoWallet.NET
     {
         public string Id { get; private set; } = string.Empty;
         public string Name { get; private set; }
-        private string[] _mnemonics { get; set; } = new string[24];
+        private string[]? _mnemonics { get; set; } 
         private string _passphrase { get; set; }
         public WalletBalance Balance { get; private set; } = new WalletBalance();
         public WalletState State { get; private set; } = new WalletState();
@@ -56,6 +56,14 @@ namespace SAIB.CardanoWallet.NET
             GenerateWallet();
         }
 
+        public CardanoWallet(string name, string passphrase, string[] mnemonics)
+        {
+            Name = name;
+            _passphrase = passphrase;
+            _mnemonics = mnemonics;
+            GenerateWallet();
+        }
+
         public CardanoWallet(string id, string name, string passphase)
         {
             Id = id;
@@ -74,7 +82,8 @@ namespace SAIB.CardanoWallet.NET
         #region Private Methods
         private async void GenerateWallet()
         {
-            _mnemonics = await CardanoWalletAPI.GenerateMnemonicsAsync();
+            if(_mnemonics == null)
+                _mnemonics = await CardanoWalletAPI.GenerateMnemonicsAsync();
             Id = await CardanoWalletAPI.RestoreWalletAsync(Name, _mnemonics, _passphrase);
             WalletRestoring?.Invoke(this, new EventArgs());
         }

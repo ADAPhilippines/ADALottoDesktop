@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using ADALotto.Events;
 using ADALotto.ViewModels;
 using Avalonia;
 using Avalonia.Controls;
@@ -35,6 +36,7 @@ namespace ADALotto.Views
                 GenerateLottoBoxes();
                 ViewModel.NewWalletRequest += OnNewWalletRequest;
                 ViewModel.TicketBuyComplete += OnTicketBuyCompleted;
+				ViewModel.BuyRequest+=OnTicketBuyRequest;
                 await ViewModel.InitializeCardanoNodeAsync();
 
 				// await Dispatcher.UIThread.InvokeAsync(async () =>
@@ -45,16 +47,33 @@ namespace ADALotto.Views
             }
         }
 
+        private void OnTicketBuyRequest(object? sender, ConfirmBuyTicketEventArgs e)
+        {
+            Dispatcher.UIThread.InvokeAsync(async () =>
+            {
+                var buyConfirmWindow = new BuyConfirmWindow
+                {
+					Combination = e.Combination,
+                    Fee = e.Fee,
+					Price = e.Price
+                };
+                await buyConfirmWindow.ShowDialog(this);
+            });
+        }
+
         private void OnTicketBuyCompleted(object? sender, EventArgs e) => LottoBoxes.ToList().ForEach(lb => lb.Text = string.Empty);
 
         private void OnNewWalletRequest(object? sender, EventArgs e)
         {
             Dispatcher.UIThread.InvokeAsync(async () =>
             {
-                var newPassWindow = new NewPassphraseWindow();
-				newPassWindow.Mnemonics = await CardanoWalletAPI.GenerateMnemonicsAsync();
+				var mnemonics = await CardanoWalletAPI.GenerateMnemonicsAsync();
+                var newPassWindow = new NewPassphraseWindow
+                {
+                    Mnemonics = mnemonics
+                };
                 await newPassWindow.ShowDialog(this);
-                ViewModel?.GenerateWalletWithPass(newPassWindow.Passphrase);
+                ViewModel?.GenerateWalletWithPass(newPassWindow.Passphrase, mnemonics);
             });
         }
 

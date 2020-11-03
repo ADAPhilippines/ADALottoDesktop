@@ -11,13 +11,10 @@ using ShellLink;
 using System.Linq;
 using System.Threading.Tasks;
 using SAIB.CardanoWallet.NET;
-using SAIB.CardanoWallet.NET.Models;
 using QRCoder;
 using Avalonia.Media.Imaging;
 using System.Drawing.Imaging;
-using System.IO.Compression;
-using SAIB.CardanoWallet.NET.Helpers;
-using System.Collections.Generic;
+using ADALotto.Events;
 
 namespace ADALotto.ViewModels
 {
@@ -29,6 +26,7 @@ namespace ADALotto.ViewModels
         public string DaedalusStateDir { get; private set; } = string.Empty;
         public Process? CardanoNodeProcess { get; private set; }
         private AppStatus _appStatus = AppStatus.Offline;
+        private string LottoOfficialWallet { get; set; } = "addr1q8nrqg4s73skqfyyj69mzr7clpe8s7ux9t8z6l55x2f2xuqra34p9pswlrq86nq63hna7p4vkrcrxznqslkta9eqs2nscfavlf";
         public AppStatus AppStatus
         {
             get => _appStatus;
@@ -95,7 +93,7 @@ namespace ADALotto.ViewModels
             }
         }
         public int[]? Combination { get; set; }
-        private int _digits { get; set; }
+        private int _digits;
         public int Digits
         {
             get
@@ -109,10 +107,13 @@ namespace ADALotto.ViewModels
             }
         }
 
+        private int _ticketPrice = 1 * 1000000;
+
         #endregion
         #region Events
         public event EventHandler? NewWalletRequest;
         public event EventHandler? TicketBuyComplete;
+        public event EventHandler<ConfirmBuyTicketEventArgs>? BuyRequest;
         #endregion
         #region Constants
         private readonly string CARDANO_SOCKET_PATH = "\"\\\\.\\pipe\\cardano-lotto\"";
@@ -160,11 +161,12 @@ namespace ADALotto.ViewModels
                     DirectoryCopy(daedalusChain, lottoChain, true);
                 }
 
-                CardanoNodeProcess = new Process();
-                CardanoNodeProcess.StartInfo = new ProcessStartInfo
+                CardanoNodeProcess = new Process
                 {
-                    FileName = $"{DaedalusInstallPath}\\cardano-node.exe",
-                    Arguments = string.Join(
+                    StartInfo = new ProcessStartInfo
+                    {
+                        FileName = $"{DaedalusInstallPath}\\cardano-node.exe",
+                        Arguments = string.Join(
                         " ",
                         "run",
                         "--topology", $"\"{TempPath}\\config\\topology.json\"",
@@ -174,8 +176,9 @@ namespace ADALotto.ViewModels
                         "--host-addr", "\"0.0.0.0\"",
                         $"--socket-path={CARDANO_SOCKET_PATH}"
                     ),
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true
+                    }
                 };
                 CardanoNodeProcess.OutputDataReceived += OnOutputDataReceived;
                 CardanoNodeProcess.Start();
@@ -195,7 +198,7 @@ namespace ADALotto.ViewModels
                 {
                     var resourceSplit = resource.Split('.');
                     var resourceDir = string.Join("/", resourceSplit.Skip(1).Take(resourceSplit.Length - 3).ToArray());
-                    var resourceFile = $"{resourceSplit[resourceSplit.Length - 2]}.{resourceSplit[resourceSplit.Length - 1]}";
+                    var resourceFile = $"{resourceSplit[^2]}.{resourceSplit[^1]}";
 
                     if (!Directory.Exists(Path.Combine(TempPath, resourceDir)))
                         Directory.CreateDirectory(Path.Combine(TempPath, resourceDir));
@@ -289,8 +292,7 @@ namespace ADALotto.ViewModels
                 {
                     AppStatus = AppStatus.Verifying;
                     var dataSplt = e.Data.Split("=");
-                    double p = 0;
-                    double.TryParse(dataSplt[1], out p);
+                    double.TryParse(dataSplt[1], out double p);
                     NodeSyncProgress = p;
                 }
 
@@ -385,7 +387,7 @@ namespace ADALotto.ViewModels
             if (CurrentWallet != null)
             {
                 await CurrentWallet.RefreshAsync();
-                WalletBalance = Math.Round(CardanoWalletAPI.LovelaceToAda(CurrentWallet.Balance?.Total?.Quantity), 2);
+                WalletBalance = Math.Round(CardanoWalletAPI.LovelaceToAda(CurrentWallet.Balance?.Total?.Quantity), 6);
             }
         }
 
@@ -406,6 +408,12 @@ namespace ADALotto.ViewModels
             CurrentWallet.WalletRestoring += OnWalletRestoring;
         }
 
+        public void GenerateWalletWithPass(string pass, string[] _mnemonics)
+        {
+            CurrentWallet = new CardanoWallet("adalotto", pass, _mnemonics);
+            CurrentWallet.WalletRestoring += OnWalletRestoring;
+        }
+
         private void OnWalletRestoring(object? sender, EventArgs e)
         {
             StartWalletPolling();
@@ -418,11 +426,23 @@ namespace ADALotto.ViewModels
             AppStatus = AppStatus.Offline;
         }
 
+        public async Task ConfirmBuyTicket()
+        {
+            if (CurrentWallet != null && Combination != null)
+            {
+                var fee = await CurrentWallet.EstimateFee(_ticketPrice, LottoOfficialWallet, new LottoTicket
+                {
+                    Combination = Combination
+                });
+                BuyRequest?.Invoke(this, new ConfirmBuyTicketEventArgs { Price = _ticketPrice, Fee = fee, Combination = Combination });
+            }
+        }
+
         public async Task BuyTicket()
         {
             if (CurrentWallet != null && Combination != null)
             {
-                var txId = await CurrentWallet.SendAsync(1 * 1000000, "addr1q8nrqg4s73skqfyyj69mzr7clpe8s7ux9t8z6l55x2f2xuqra34p9pswlrq86nq63hna7p4vkrcrxznqslkta9eqs2nscfavlf", new LottoTicket
+                var txId = await CurrentWallet.SendAsync(_ticketPrice, LottoOfficialWallet, new LottoTicket
                 {
                     Combination = Combination
                 });
@@ -438,13 +458,13 @@ namespace ADALotto.ViewModels
             {
                 var fee = await CurrentWallet.EstimateFee(
                     CurrentWallet.Balance.Total.Quantity,
-                    "addr1q8nrqg4s73skqfyyj69mzr7clpe8s7ux9t8z6l55x2f2xuqra34p9pswlrq86nq63hna7p4vkrcrxznqslkta9eqs2nscfavlf");
+                    LottoOfficialWallet);
 
                 var newFee = await CurrentWallet.EstimateFee(
                     CurrentWallet.Balance.Total.Quantity - fee,
-                    "addr1q8nrqg4s73skqfyyj69mzr7clpe8s7ux9t8z6l55x2f2xuqra34p9pswlrq86nq63hna7p4vkrcrxznqslkta9eqs2nscfavlf");
+                    LottoOfficialWallet);
 
-                var txId = await CurrentWallet.SendAsync(CurrentWallet.Balance.Total.Quantity - newFee, "addr1q8nrqg4s73skqfyyj69mzr7clpe8s7ux9t8z6l55x2f2xuqra34p9pswlrq86nq63hna7p4vkrcrxznqslkta9eqs2nscfavlf");
+                var txId = await CurrentWallet.SendAsync(CurrentWallet.Balance.Total.Quantity - newFee, LottoOfficialWallet);
                 await RefreshWallet();
             }
         }
