@@ -114,6 +114,7 @@ namespace ADALotto.ViewModels
         public event EventHandler? NewWalletRequest;
         public event EventHandler? TicketBuyComplete;
         public event EventHandler<ConfirmBuyTicketEventArgs>? BuyRequest;
+        public event EventHandler<ConfirmWithdrawalEventArgs>? WithdrawalRequest;
         #endregion
         #region Constants
         private readonly string CARDANO_SOCKET_PATH = "\"\\\\.\\pipe\\cardano-lotto\"";
@@ -438,11 +439,11 @@ namespace ADALotto.ViewModels
             }
         }
 
-        public async Task BuyTicket()
+        public async Task BuyTicket(string passphrase)
         {
             if (CurrentWallet != null && Combination != null)
             {
-                var txId = await CurrentWallet.SendAsync(_ticketPrice, LottoOfficialWallet, new LottoTicket
+                var txId = await CurrentWallet.SendAsync(_ticketPrice, LottoOfficialWallet, passphrase, new LottoTicket
                 {
                     Combination = Combination
                 });
@@ -452,20 +453,29 @@ namespace ADALotto.ViewModels
             }
         }
 
-        public async Task Withdraw()
+        public async Task Withdraw(string walletAddress, string passphrase)
         {
             if (CurrentWallet != null && CurrentWallet.Balance.Total != null)
             {
                 var fee = await CurrentWallet.EstimateFee(
                     CurrentWallet.Balance.Total.Quantity,
-                    LottoOfficialWallet);
+                    walletAddress);
 
                 var newFee = await CurrentWallet.EstimateFee(
                     CurrentWallet.Balance.Total.Quantity - fee,
-                    LottoOfficialWallet);
+                    walletAddress);
 
-                var txId = await CurrentWallet.SendAsync(CurrentWallet.Balance.Total.Quantity - newFee, LottoOfficialWallet);
+                var txId = await CurrentWallet.SendAsync(CurrentWallet.Balance.Total.Quantity - newFee, walletAddress, passphrase);
                 await RefreshWallet();
+            }
+        }
+
+        public async Task ConfirmWithdrawal()
+        {
+            if (CurrentWallet != null && CurrentWallet.Balance.Total != null)
+            {
+				var fee = await CurrentWallet.EstimateFee(_ticketPrice, LottoOfficialWallet);
+				WithdrawalRequest?.Invoke(this, new ConfirmWithdrawalEventArgs { Fee = fee, Amount = CurrentWallet.Balance.Total.Quantity });
             }
         }
     }

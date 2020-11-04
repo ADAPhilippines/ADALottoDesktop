@@ -10,7 +10,7 @@
 	x:Class="ADALotto.Views.WithdrawConfirmWindow"
 	Icon="/Assets/avalonia-logo.ico"
 	Title="Confirm Withdrawal"
-	Width="578" Height="479" MaxWidth="578" MaxHeight="479" CanResize="false" WindowStartupLocation="CenterOwner" Background="#EAE8FB"
+	Width="578" Height="499" MaxWidth="578" MaxHeight="499" MinHeight="499" MinWidth="578" WindowStartupLocation="CenterOwner" Background="#EAE8FB"
 	ExtendClientAreaToDecorationsHint="True"
     ExtendClientAreaChromeHints="NoChrome"
     ExtendClientAreaTitleBarHeightHint="-1">
@@ -28,6 +28,7 @@
         </Style>
         <Style Selector="TextBlock.ALLabelKey">
             <Setter Property="Margin" Value="0,0,7,0"/>
+            <Setter Property="Foreground" Value="Black"/>
         </Style>
         <Style Selector="TextBlock.ALLabelValue">
             <Setter Property="Foreground" Value="#FF603E"/>
@@ -40,6 +41,11 @@
 			<Setter Property="Background" Value="#231B4D"/>
 		</Style>
 
+		<Style Selector="TextBox.pass">
+            <Setter Property="Foreground" Value="Black"/>
+            <Setter Property="Background" Value="White"/>
+		</Style>
+
 		<Style Selector="TextBox.pass /template/ Border#border">
     		<Setter Property="BorderBrush" Value="#FFFFFF"/>
 			<Setter Property="CornerRadius" Value="4" />
@@ -48,32 +54,54 @@
 		<Style Selector="TextBox:pointerover.pass /template/ Border#border">
 			<Setter Property="BorderBrush" Value="#FFFFFF"/>
 		</Style>
+		
+		<Style Selector="Button.close">
+			<Setter Property="Foreground" Value="Black"/>
+		</Style>
+
+		<Style Selector="Button:pointerover.close">
+			<Setter Property="Foreground" Value="White"/>
+		</Style>
+
+		<Style Selector="Button:pointerover.close /template/ ContentPresenter">
+			<Setter Property="Background" Value="#e81123"/>
+		</Style>
+
+		<Style Selector="Button.close /template/ ContentPresenter">
+			<Setter Property="BorderThickness" Value="0" />
+		</Style>
 
     </Window.Styles>
-
-	<StackPanel Margin="40">
-		<TextBlock Classes="ALLabel ALLabelKey" Margin="0,0,0,15">Wallet Address:</TextBlock>
-		<TextBox Classes="pass" Name="txtWalletAddress" Padding="15" Watermark="Enter your wallet address..." Margin="0,0,0,30" FontSize="18" FontWeight="500" FontFamily="avares://ADALotto/Assets/Fonts#Poppins"/>
-		<TextBlock Classes="ALLabel ALLabelKey" Margin="0,0,0,15">Passphrase:</TextBlock>
-		<TextBox Classes="pass" Name="Passphrase" Padding="15" Watermark="Enter your spending password..." PasswordChar="*"  Margin="0,0,0,30" FontSize="18" FontWeight="500" FontFamily="avares://ADALotto/Assets/Fonts#Poppins"/>
-		<StackPanel Orientation="Horizontal" Margin="0,0,0,7">
-			<TextBlock Classes="ALLabel ALLabelKey">Amount:</TextBlock>
-			<TextBlock Classes="ADASymbol ALLabelValue">₳</TextBlock>
-			<TextBlock Classes="ALLabel ALLabelValue">10.000000</TextBlock>
+	
+	<StackPanel>
+		<Grid Height="32" ColumnDefinitions="*,50">
+			<Button Grid.Column="1" Classes="close" FontFamily="Segoe MDL2 Assets" Height="32" Background="#EAE8FB" Click="CloseWindow"></Button>
+		</Grid>
+		<StackPanel Margin="40">
+			<TextBlock Classes="ALLabel ALLabelKey" Margin="0,0,0,15">Wallet Address:</TextBlock>
+			<TextBox Classes="pass" Name="txtWalletAddress" Padding="15" Watermark="Enter your wallet address..." Margin="0,0,0,30" FontSize="18" FontWeight="500" FontFamily="avares://ADALotto/Assets/Fonts#Poppins"/>
+			<TextBlock Classes="ALLabel ALLabelKey" Margin="0,0,0,15">Passphrase:</TextBlock>
+			<TextBox Classes="pass" Name="txtPassphrase" Padding="15" Watermark="Enter your spending password..." PasswordChar="*"  Margin="0,0,0,30" FontSize="18" FontWeight="500" FontFamily="avares://ADALotto/Assets/Fonts#Poppins"/>
+			<StackPanel Orientation="Horizontal" Margin="0,0,0,7">
+				<TextBlock Classes="ALLabel ALLabelKey">Amount:</TextBlock>
+				<TextBlock Classes="ADASymbol ALLabelValue">₳</TextBlock>
+				<TextBlock Name="lblAmount" Classes="ALLabel ALLabelValue">10.000000</TextBlock>
+			</StackPanel>
+			<StackPanel Orientation="Horizontal" Margin="0,0,0,30">
+				<TextBlock Classes="ALLabel ALLabelKey">Fee:</TextBlock>
+				<TextBlock Classes="ADASymbol ALLabelValue">₳</TextBlock>
+				<TextBlock Name="lblFee" Classes="ALLabel ALLabelValue">0.180000</TextBlock>
+			</StackPanel>
+			<Button
+				Classes="buy"
+				Background="#FF7235" 
+				BorderBrush="#FF7235"
+				BorderThickness="0"
+				Width="221"
+				Height="46"
+				Click="ConfirmWithdraw">
+				<TextBlock FontSize="21" FontWeight="500" FontFamily="avares://ADALotto/Assets/Fonts#Poppins" Foreground="White">Withdraw</TextBlock>
+			</Button>
 		</StackPanel>
-		<StackPanel Orientation="Horizontal" Margin="0,0,0,30">
-			<TextBlock Classes="ALLabel ALLabelKey">Fee:</TextBlock>
-			<TextBlock Classes="ADASymbol ALLabelValue">₳</TextBlock>
-			<TextBlock Classes="ALLabel ALLabelValue">0.180000</TextBlock>
-		</StackPanel>
-		<Button
-			Classes="buy"
-			Background="#FF7235" 
-			BorderBrush="#FF7235"
-			BorderThickness="0"
-			Width="221"
-			Height="46">
-			<TextBlock FontSize="21" FontWeight="500" FontFamily="avares://ADALotto/Assets/Fonts#Poppins" Foreground="White">Withdraw</TextBlock>
-		</Button>
 	</StackPanel>
 </Window>

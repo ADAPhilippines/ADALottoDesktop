@@ -75,7 +75,6 @@ namespace SAIB.CardanoWallet.NET
         {
             Id = walletData.Id;
             Name = walletData.Name;
-            _passphrase = "test123456";
         }
         #endregion
 
@@ -126,7 +125,7 @@ namespace SAIB.CardanoWallet.NET
             return await CardanoWalletAPI.EstimateTransactionFeeAsync(Id, payments, metadata);
         }
 
-        public async Task<string?> SendAsync(long lovelaceAmount, string address, object? metadata = null)
+        public async Task<string?> SendAsync(long lovelaceAmount, string address, string passphrase, object? metadata = null)
         {
             await RefreshAsync();
             var payments = new List<Payment>() {
@@ -146,7 +145,7 @@ namespace SAIB.CardanoWallet.NET
             if (fee + lovelaceAmount > Balance?.Available?.Quantity)
                 return null;
 
-            return await CardanoWalletAPI.CreateTransactionAsync(Id, _passphrase, payments, metadata);
+            return await CardanoWalletAPI.CreateTransactionAsync(Id, passphrase, payments, metadata);
         }
     }
 }

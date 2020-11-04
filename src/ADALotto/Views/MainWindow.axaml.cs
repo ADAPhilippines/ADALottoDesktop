@@ -5,6 +5,7 @@ using ADALotto.ViewModels;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Threading;
@@ -36,15 +37,28 @@ namespace ADALotto.Views
                 GenerateLottoBoxes();
                 ViewModel.NewWalletRequest += OnNewWalletRequest;
                 ViewModel.TicketBuyComplete += OnTicketBuyCompleted;
-				ViewModel.BuyRequest+=OnTicketBuyRequest;
+                ViewModel.BuyRequest += OnTicketBuyRequest;
+				ViewModel.WithdrawalRequest += OnWithdrawalRequest; 
                 await ViewModel.InitializeCardanoNodeAsync();
-
-				// await Dispatcher.UIThread.InvokeAsync(async () =>
-				// {
-				// 	var buyConfirmWindow = new WithdrawConfirmWindow();
-				// 	await buyConfirmWindow.ShowDialog(this);
-				// });
             }
+        }
+
+        private void OnWithdrawalRequest(object? sender, ConfirmWithdrawalEventArgs e)
+        { 
+			Dispatcher.UIThread.InvokeAsync(async () =>
+            {
+                var confirmWithdrawWindow = new WithdrawConfirmWindow
+				{
+					Amount = e.Amount,
+					Fee = e.Fee
+				};
+                await confirmWithdrawWindow.ShowDialog(this);
+
+				if(confirmWithdrawWindow.IsConfirmed)
+				{
+					ViewModel?.Withdraw(confirmWithdrawWindow.WalletAddress ,confirmWithdrawWindow.Passphrase);
+				}
+            });
         }
 
         private void OnTicketBuyRequest(object? sender, ConfirmBuyTicketEventArgs e)
@@ -53,11 +67,15 @@ namespace ADALotto.Views
             {
                 var buyConfirmWindow = new BuyConfirmWindow
                 {
-					Combination = e.Combination,
+                    Combination = e.Combination,
                     Fee = e.Fee,
-					Price = e.Price
+                    Price = e.Price
                 };
                 await buyConfirmWindow.ShowDialog(this);
+                if (buyConfirmWindow.IsConfirmed)
+                {
+                    ViewModel?.BuyTicket(buyConfirmWindow.Passphrase);
+                }
             });
         }
 
@@ -67,7 +85,7 @@ namespace ADALotto.Views
         {
             Dispatcher.UIThread.InvokeAsync(async () =>
             {
-				var mnemonics = await CardanoWalletAPI.GenerateMnemonicsAsync();
+                var mnemonics = await CardanoWalletAPI.GenerateMnemonicsAsync();
                 var newPassWindow = new NewPassphraseWindow
                 {
                     Mnemonics = mnemonics
@@ -96,7 +114,7 @@ namespace ADALotto.Views
             for (int x = 0; x < digits; x++)
             {
                 var newLottoBox = new TextBox();
-				newLottoBox.Classes.Add("lottobox");
+                newLottoBox.Classes.Add("lottobox");
                 newLottoBox.Watermark = "??";
                 newLottoBox.TextAlignment = TextAlignment.Center;
                 newLottoBox.KeyUp += OnLottNumberInput;
@@ -170,6 +188,11 @@ namespace ADALotto.Views
         {
             ViewModel?.StopNode();
             base.OnClosing(e);
+        }
+
+        public void ShutdownApp(object sender, RoutedEventArgs e)
+        {
+            this.Close();
         }
     }
 }
