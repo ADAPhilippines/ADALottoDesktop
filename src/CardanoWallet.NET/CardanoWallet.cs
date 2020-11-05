@@ -34,7 +34,7 @@ namespace SAIB.CardanoWallet.NET
         public string Id { get; private set; } = string.Empty;
         public string Name { get; private set; }
         private string[]? _mnemonics { get; set; } 
-        private string _passphrase { get; set; }
+        private string _passphrase { get; set; } = string.Empty;
         public WalletBalance Balance { get; private set; } = new WalletBalance();
         public WalletState State { get; private set; } = new WalletState();
         public Tip Tip { get; private set; } = new Tip();
@@ -146,6 +146,11 @@ namespace SAIB.CardanoWallet.NET
                 return null;
 
             return await CardanoWalletAPI.CreateTransactionAsync(Id, passphrase, payments, metadata);
+        }
+
+        public async Task<Transaction?> GetTransactionByIdAsync(string txId)
+        {
+            return await CardanoWalletAPI.GetTransactionByIdAsync(Id, txId);
         }
     }
 }

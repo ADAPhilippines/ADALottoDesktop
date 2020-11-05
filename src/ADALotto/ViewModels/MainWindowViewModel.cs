@@ -15,6 +15,7 @@ using QRCoder;
 using Avalonia.Media.Imaging;
 using System.Drawing.Imaging;
 using ADALotto.Events;
+using SAIB.CardanoWallet.NET.Models;
 
 namespace ADALotto.ViewModels
 {
@@ -115,6 +116,9 @@ namespace ADALotto.ViewModels
         public event EventHandler? TicketBuyComplete;
         public event EventHandler<ConfirmBuyTicketEventArgs>? BuyRequest;
         public event EventHandler<ConfirmWithdrawalEventArgs>? WithdrawalRequest;
+        public event EventHandler? TransactionFail;
+        public event EventHandler<LoadingStartEventArgs>? LoadingStartRequest;
+        public event EventHandler? LoadingEndRequest;
         #endregion
         #region Constants
         private readonly string CARDANO_SOCKET_PATH = "\"\\\\.\\pipe\\cardano-lotto\"";
@@ -360,7 +364,7 @@ namespace ADALotto.ViewModels
                 {
                     if (CurrentWallet != null)
                     {
-                        await RefreshWallet();
+                        await RefreshWalletAsync();
                         if (CurrentWallet.State != null && CurrentWallet.State.Status == WalletStatus.Syncing)
                         {
                             AppStatus = AppStatus.Syncing;
@@ -378,12 +382,12 @@ namespace ADALotto.ViewModels
                             GenerateAddressQR();
                         }
                     }
-                    await Task.Delay(1000 * 10);
+                    await Task.Delay(1000 * 5);
                 }
             })).Start();
         }
 
-        private async Task RefreshWallet()
+        private async Task RefreshWalletAsync()
         {
             if (CurrentWallet != null)
             {
@@ -435,7 +439,11 @@ namespace ADALotto.ViewModels
                 {
                     Combination = Combination
                 });
-                BuyRequest?.Invoke(this, new ConfirmBuyTicketEventArgs { Price = _ticketPrice, Fee = fee, Combination = Combination });
+
+                if (fee > 0)
+                    BuyRequest?.Invoke(this, new ConfirmBuyTicketEventArgs { Price = _ticketPrice, Fee = fee, Combination = Combination });
+                else
+                    TransactionFail?.Invoke(this, new EventArgs());
             }
         }
 
@@ -443,13 +451,33 @@ namespace ADALotto.ViewModels
         {
             if (CurrentWallet != null && Combination != null)
             {
+                LoadingStartRequest?.Invoke(this, new LoadingStartEventArgs { Message = "Processing Ticket, please wait..." });
                 var txId = await CurrentWallet.SendAsync(_ticketPrice, LottoOfficialWallet, passphrase, new LottoTicket
                 {
                     Combination = Combination
                 });
-                Combination = new int[Digits];
-                await RefreshWallet();
-                TicketBuyComplete?.Invoke(this, new EventArgs());
+                await RefreshWalletAsync();
+
+                if (!string.IsNullOrEmpty(txId))
+                {
+                    Transaction? tx;
+                    while (true)
+                    {
+                        tx = await CurrentWallet.GetTransactionByIdAsync(txId);
+                        if (tx != null && tx.Status == TransactionStatus.InLedger)
+                        {
+                            break;
+                        }
+                        await Task.Delay(1000);
+                    }
+					TicketBuyComplete?.Invoke(this, new EventArgs());
+                	Combination = new int[Digits];
+                }
+				else
+				{
+					TransactionFail?.Invoke(this, new EventArgs());
+				}
+				LoadingEndRequest?.Invoke(this, new EventArgs());
             }
         }
 
@@ -466,7 +494,7 @@ namespace ADALotto.ViewModels
                     walletAddress);
 
                 var txId = await CurrentWallet.SendAsync(CurrentWallet.Balance.Total.Quantity - newFee, walletAddress, passphrase);
-                await RefreshWallet();
+                await RefreshWalletAsync();
             }
         }
 
@@ -474,8 +502,12 @@ namespace ADALotto.ViewModels
         {
             if (CurrentWallet != null && CurrentWallet.Balance.Total != null)
             {
-				var fee = await CurrentWallet.EstimateFee(_ticketPrice, LottoOfficialWallet);
-				WithdrawalRequest?.Invoke(this, new ConfirmWithdrawalEventArgs { Fee = fee, Amount = CurrentWallet.Balance.Total.Quantity });
+                var fee = await CurrentWallet.EstimateFee(_ticketPrice, LottoOfficialWallet);
+
+                if (fee > 0)
+                    WithdrawalRequest?.Invoke(this, new ConfirmWithdrawalEventArgs { Fee = fee, Amount = CurrentWallet.Balance.Total.Quantity });
+                else
+                    TransactionFail?.Invoke(this, new EventArgs());
             }
         }
     }

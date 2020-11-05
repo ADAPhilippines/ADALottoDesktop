@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
@@ -10,10 +11,7 @@ namespace ADALotto.Views
         private string _message = string.Empty;
         public string Message
         {
-            get
-            {
-                return _message;
-            }
+            get => _message;
 
             set
             {
@@ -24,10 +22,7 @@ namespace ADALotto.Views
         private string _buttonLabel { get; set; } = string.Empty;
         public string ButtonLabel
         {
-            get
-            {
-                return _buttonLabel;
-            }
+            get => _buttonLabel;
             set
             {
                 _buttonLabel = value;
@@ -36,7 +31,16 @@ namespace ADALotto.Views
         }
         private TextBlock? tbMessage { get; set; }
         private TextBlock? tbButtonLabel { get; set; }
-
+        private bool _isClosePrevented = false;
+        public bool IsClosePrevented
+        {
+            get => _isClosePrevented;
+            set
+            {
+                _isClosePrevented = value;
+                this.Find<Button>("btnAction").IsVisible = !_isClosePrevented;
+            }
+        }
         public MessageBox()
         {
             InitializeComponent();
@@ -46,6 +50,12 @@ namespace ADALotto.Views
         {
             AvaloniaXamlLoader.Load(this);
             this.Opened += OnMessageBoxOpened;
+            this.Closing += OnMessageBoxClosing;
+        }
+
+        private void OnMessageBoxClosing(object? sender, CancelEventArgs e)
+        {
+            e.Cancel = IsClosePrevented;
         }
 
         private void OnMessageBoxOpened(object? sender, EventArgs e)
@@ -74,9 +84,14 @@ namespace ADALotto.Views
             }.ShowDialog(parent);
         }
 
-		private void OnActionClick(object sender, RoutedEventArgs e)
-		{
-			this.Close();
-		}
+        private void OnActionClick(object sender, RoutedEventArgs e)
+        {
+            this.Close();
+        }
+
+        public void CloseWindow(object sender, RoutedEventArgs e)
+        {
+            this.Close();
+        }
     }
 }

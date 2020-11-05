@@ -10,7 +10,7 @@
 	x:Class="ADALotto.Views.MessageBox"
 	Icon="/Assets/avalonia-logo.ico"
 	Title="Start!"
-	Width="450" Height="250" MaxWidth="450" MaxHeight="250" CanResize="false" WindowStartupLocation="CenterScreen" Background="#EAE8FB"
+	Width="450" Height="250" MaxWidth="450" MaxHeight="250" MinWidth="450" MinHeight="250" WindowStartupLocation="CenterScreen" Background="#EAE8FB"
 	ExtendClientAreaToDecorationsHint="True"
     ExtendClientAreaChromeHints="NoChrome"
     ExtendClientAreaTitleBarHeightHint="-1">
@@ -53,20 +53,42 @@
 			<Setter Property="BorderBrush" Value="#FFFFFF"/>
 		</Style>
 
+		<Style Selector="Button.close">
+			<Setter Property="Foreground" Value="Black"/>
+		</Style>
+
+		<Style Selector="Button:pointerover.close">
+			<Setter Property="Foreground" Value="White"/>
+		</Style>
+
+		<Style Selector="Button:pointerover.close /template/ ContentPresenter">
+			<Setter Property="Background" Value="#e81123"/>
+		</Style>
+
+		<Style Selector="Button.close /template/ ContentPresenter">
+			<Setter Property="BorderThickness" Value="0" />
+		</Style>
+
     </Window.Styles>
 	
-	<Grid Margin="40" RowDefinitions="1*,46">
-		<TextBlock Name="tbMessage" Classes="ALLabel ALLabelKey" Margin="0,0,0,20" TextWrapping="Wrap" TextAlignment="Center" />
-		<Button
-			Grid.Row="1"
-			Classes="buy"
-			Background="#FF7235" 
-			BorderBrush="#FF7235"
-			BorderThickness="0"
-			Width="221"
-			Height="46"
-			Click="OnActionClick">
-			<TextBlock Name="tbButtonLabel" FontSize="21" FontWeight="500" FontFamily="avares://ADALotto/Assets/Fonts#Poppins" Foreground="White"/>
-		</Button>
-	</Grid>
+	<StackPanel>
+		<Grid Height="32" ColumnDefinitions="*,50">
+			<Button Grid.Column="1" Classes="close" FontFamily="Segoe MDL2 Assets" Height="32" Background="#EAE8FB" Click="CloseWindow"></Button>
+		</Grid>
+		<Grid Margin="40" RowDefinitions="1*,46">
+			<TextBlock Name="tbMessage" Classes="ALLabel ALLabelKey" Margin="0,0,0,60" TextWrapping="Wrap" TextAlignment="Center" />
+			<Button
+				Name="btnAction"
+				Grid.Row="1"
+				Classes="buy"
+				Background="#FF7235" 
+				BorderBrush="#FF7235"
+				BorderThickness="0"
+				Width="221"
+				Height="46"
+				Click="OnActionClick">
+				<TextBlock Name="tbButtonLabel" FontSize="21" FontWeight="500" FontFamily="avares://ADALotto/Assets/Fonts#Poppins" Foreground="White"/>
+			</Button>
+		</Grid>
+	</StackPanel>
 </Window>

@@ -144,24 +144,21 @@ namespace SAIB.CardanoWallet.NET
         public static async Task<long> EstimateTransactionFeeAsync(string walletId, IEnumerable<Payment> payments, object? metadata = null)
         {
             long result = 0;
-            try
-            {
-                var pResult = await HttpPostJsonAsync<EstimateTransactionFeeResponse, EstimateTransactionFeePayload>($"/v2/wallets/{walletId}/payment-fees",
-                    new EstimateTransactionFeePayload
-                    {
-                        Payments = payments,
-                        Metadata = CardanoTxSerializer.ToMetaDataPayload(metadata)
-                    });
+            var pResult = await HttpPostJsonAsync<EstimateTransactionFeeResponse, EstimateTransactionFeePayload>($"/v2/wallets/{walletId}/payment-fees",
+                new EstimateTransactionFeePayload
+                {
+                    Payments = payments,
+                    Metadata = CardanoTxSerializer.ToMetaDataPayload(metadata)
+                });
 
-                if (pResult != null && pResult.EstimatedMaximum != null)
-                    result = pResult.EstimatedMaximum.Quantity;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-            }
-
+            if (pResult != null && pResult.EstimatedMaximum != null)
+                result = pResult.EstimatedMaximum.Quantity;
             return result;
+        }
+
+        public static async Task<Transaction?> GetTransactionByIdAsync(string walletId, string txId)
+        {
+            return await HttpGetAsync<Transaction?>($"/v2/wallets/{walletId}/transactions/{txId}");
         }
 
         private static async Task<T> HttpGetAsync<T>(string url)

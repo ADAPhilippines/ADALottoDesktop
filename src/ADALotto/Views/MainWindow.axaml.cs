@@ -16,6 +16,7 @@ namespace ADALotto.Views
     public class MainWindow : FluentWindow
     {
         private TextBox[]? LottoBoxes { get; set; }
+        private MessageBox? LoadingBox { get; set; }
         public MainWindowViewModel? ViewModel
         {
             get
@@ -25,6 +26,7 @@ namespace ADALotto.Views
         }
         public MainWindow()
         {
+            LoadingBox = new MessageBox();
             InitializeComponent();
             Opened += OnOpened;
         }
@@ -38,26 +40,64 @@ namespace ADALotto.Views
                 ViewModel.NewWalletRequest += OnNewWalletRequest;
                 ViewModel.TicketBuyComplete += OnTicketBuyCompleted;
                 ViewModel.BuyRequest += OnTicketBuyRequest;
-				ViewModel.WithdrawalRequest += OnWithdrawalRequest; 
+                ViewModel.WithdrawalRequest += OnWithdrawalRequest;
+                ViewModel.TransactionFail += OnTransactionFailed;
+                ViewModel.LoadingStartRequest += OnLoadingStartRequest;
+                ViewModel.LoadingEndRequest += OnLoadingEndRequest;
                 await ViewModel.InitializeCardanoNodeAsync();
             }
         }
 
+        private void OnLoadingEndRequest(object? sender, EventArgs e)
+        {
+            Dispatcher.UIThread.InvokeAsync(() =>
+           {
+               if (LoadingBox != null)
+               {
+                   LoadingBox.IsClosePrevented = false;
+                   LoadingBox.Close();
+               }
+           });
+        }
+
+        private void OnLoadingStartRequest(object? sender, LoadingStartEventArgs e)
+        {
+            Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                LoadingBox = new MessageBox
+                {
+                    Title = "Loading",
+                    Message = e.Message,
+                    ButtonLabel = "Ok",
+                    IsClosePrevented = true
+                };
+                LoadingBox.ShowDialog(this);
+            });
+        }
+
+        private void OnTransactionFailed(object? sender, EventArgs e)
+        {
+            Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                MessageBox.Show("Error", "Transaction failed, try again in a bit...", "Ok", this);
+            });
+        }
+
         private void OnWithdrawalRequest(object? sender, ConfirmWithdrawalEventArgs e)
-        { 
-			Dispatcher.UIThread.InvokeAsync(async () =>
+        {
+            Dispatcher.UIThread.InvokeAsync(async () =>
             {
                 var confirmWithdrawWindow = new WithdrawConfirmWindow
-				{
-					Amount = e.Amount,
-					Fee = e.Fee
-				};
+                {
+                    Amount = e.Amount,
+                    Fee = e.Fee
+                };
                 await confirmWithdrawWindow.ShowDialog(this);
 
-				if(confirmWithdrawWindow.IsConfirmed)
-				{
-					ViewModel?.Withdraw(confirmWithdrawWindow.WalletAddress ,confirmWithdrawWindow.Passphrase);
-				}
+                if (confirmWithdrawWindow.IsConfirmed)
+                {
+                    ViewModel?.Withdraw(confirmWithdrawWindow.WalletAddress, confirmWithdrawWindow.Passphrase);
+                }
             });
         }
 
@@ -137,20 +177,6 @@ namespace ADALotto.Views
 
             if (textBox != null && textBox.Text != null)
             {
-
-                if (ViewModel != null && ViewModel.Combination != null)
-                {
-                    var isValid = int.TryParse(textBox.Text, out var n);
-                    if (isValid)
-                    {
-                        ViewModel.Combination[numberIdx] = n;
-                    }
-                    else
-                    {
-                        textBox.Text = string.Empty;
-                    }
-                }
-
                 if (textBox.Text.Length >= 2 && numberIdx < ViewModel?.Digits - 1)
                 {
                     if (LottoBoxes != null)
@@ -174,6 +200,19 @@ namespace ADALotto.Views
                 if (textBox.Text.Length > 2 && e.Key != Key.Back)
                 {
                     textBox.Text = textBox.Text.Substring(0, 2);
+                }
+
+                if (ViewModel != null && ViewModel.Combination != null)
+                {
+                    var isValid = int.TryParse(textBox.Text, out var n);
+                    if (isValid)
+                    {
+                        ViewModel.Combination[numberIdx] = n;
+                    }
+                    else
+                    {
+                        textBox.Text = string.Empty;
+                    }
                 }
             }
             else if (textBox?.Text == null && e.Key == Key.Back && LottoBoxes != null)
