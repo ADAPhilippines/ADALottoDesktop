@@ -48,18 +48,23 @@ namespace SAIB.CardanoWallet.NET
 
         public static void StartWallet()
         {
-            WalletProcess = new Process();
-            WalletProcess.StartInfo = new ProcessStartInfo
+            WalletProcess = new Process
             {
-                FileName = CardanoWalletBinaryPath,
-                Arguments = string.Join(" ",
-                "serve",
-                "--port", CardanoWalletPort,
-                "--node-socket", CardanoNodeSocketPath,
-                "--database", CardanoWalletDatabasePath,
-                "--mainnet"),
-                UseShellExecute = false,
-                RedirectStandardOutput = true
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = CardanoWalletBinaryPath,
+                    Arguments = string
+                    .Join(
+                        " ",
+                        "serve",
+                        "--port", CardanoWalletPort,
+                        "--node-socket", CardanoNodeSocketPath,
+                        "--database", CardanoWalletDatabasePath,
+                        "--mainnet"),
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    RedirectStandardOutput = true
+                }
             };
             WalletProcess.OutputDataReceived += (object sender, DataReceivedEventArgs e) => Console.WriteLine(e.Data);
             WalletProcess.Start();

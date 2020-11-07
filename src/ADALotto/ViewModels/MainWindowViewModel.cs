@@ -184,6 +184,7 @@ namespace ADALotto.ViewModels
                             $"--socket-path={CARDANO_SOCKET_PATH}"
                         ),
                             UseShellExecute = false,
+							CreateNoWindow = true,
                             RedirectStandardOutput = true
                         }
                     };
@@ -202,7 +203,8 @@ namespace ADALotto.ViewModels
         {
             var assembly = typeof(Program).Assembly;
             var resources = assembly.GetManifestResourceNames();
-            Directory.Delete(TempPath, true);
+			if(File.Exists(TempPath))
+            	Directory.Delete(TempPath, true);
 
             foreach (string resource in resources)
             {
