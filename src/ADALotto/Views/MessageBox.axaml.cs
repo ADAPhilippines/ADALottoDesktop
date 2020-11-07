@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
@@ -74,9 +75,9 @@ namespace ADALotto.Views
                 tbButtonLabel.Text = ButtonLabel;
         }
 
-        public static void Show(string title, string message, string buttonLabel = "Ok", Window? parent = null)
+        public static async Task ShowShow(string title, string message, string buttonLabel = "Ok", Window? parent = null)
         {
-            new MessageBox
+            await new MessageBox
             {
                 Title = title,
                 Message = message,

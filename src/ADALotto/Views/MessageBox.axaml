@@ -10,7 +10,7 @@
 	x:Class="ADALotto.Views.MessageBox"
 	Icon="/Assets/avalonia-logo.ico"
 	Title="Start!"
-	Width="450" Height="250" MaxWidth="450" MaxHeight="250" MinWidth="450" MinHeight="250" WindowStartupLocation="CenterScreen" Background="#EAE8FB"
+	Width="450" Height="250" MaxWidth="450" MaxHeight="250" MinWidth="450" MinHeight="250" WindowStartupLocation="CenterOwner" Background="#EAE8FB"
 	ExtendClientAreaToDecorationsHint="True"
     ExtendClientAreaChromeHints="NoChrome"
     ExtendClientAreaTitleBarHeightHint="-1">

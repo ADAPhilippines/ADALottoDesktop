@@ -44,20 +44,30 @@ namespace ADALotto.Views
                 ViewModel.TransactionFail += OnTransactionFailed;
                 ViewModel.LoadingStartRequest += OnLoadingStartRequest;
                 ViewModel.LoadingEndRequest += OnLoadingEndRequest;
+                ViewModel.DaedalusNotFound += OnDaedalusNotFound;
                 await ViewModel.InitializeCardanoNodeAsync();
             }
+        }
+
+        private void OnDaedalusNotFound(object? sender, EventArgs e)
+        {
+            Dispatcher.UIThread.InvokeAsync(async () =>
+            {
+                await MessageBox.ShowShow("Error", "Daedalus is required to use ADALotto, please install it and try again...", "Exit", this);
+                this.Close();
+            });
         }
 
         private void OnLoadingEndRequest(object? sender, EventArgs e)
         {
             Dispatcher.UIThread.InvokeAsync(() =>
-           {
-               if (LoadingBox != null)
-               {
-                   LoadingBox.IsClosePrevented = false;
-                   LoadingBox.Close();
-               }
-           });
+            {
+                if (LoadingBox != null)
+                {
+                    LoadingBox.IsClosePrevented = false;
+                    LoadingBox.Close();
+                }
+            });
         }
 
         private void OnLoadingStartRequest(object? sender, LoadingStartEventArgs e)
@@ -79,7 +89,7 @@ namespace ADALotto.Views
         {
             Dispatcher.UIThread.InvokeAsync(() =>
             {
-                MessageBox.Show("Error", "Transaction failed, try again in a bit...", "Ok", this);
+                MessageBox.ShowShow("Error", "Transaction failed, try again in a bit...", "Ok", this);
             });
         }
 

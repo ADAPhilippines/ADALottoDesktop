@@ -119,6 +119,7 @@ namespace ADALotto.ViewModels
         public event EventHandler? TransactionFail;
         public event EventHandler<LoadingStartEventArgs>? LoadingStartRequest;
         public event EventHandler? LoadingEndRequest;
+		public event EventHandler? DaedalusNotFound;
         #endregion
         #region Constants
         private readonly string CARDANO_SOCKET_PATH = "\"\\\\.\\pipe\\cardano-lotto\"";
@@ -144,50 +145,56 @@ namespace ADALotto.ViewModels
                 var startMenuPath = Environment.GetFolderPath(Environment.SpecialFolder.StartMenu);
                 var daedalusShortcut = Path.Combine(startMenuPath, "Programs", "Daedalus Mainnet", "Daedalus Mainnet.lnk");
 
-                // Get Daedalus Install Dir from Link
-                var shortcut = Shortcut.ReadFromFile(daedalusShortcut);
-                DaedalusInstallPath = shortcut.StringData.WorkingDir;
+                if (File.Exists(daedalusShortcut))
+                { // Get Daedalus Install Dir from Link
+                    var shortcut = Shortcut.ReadFromFile(daedalusShortcut);
+                    DaedalusInstallPath = shortcut.StringData.WorkingDir;
 
-                // Get Daedalus State Dir
-                var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                DaedalusStateDir = GetDaedalusStateDir().Replace("${APPDATA}", appData);
+                    // Get Daedalus State Dir
+                    var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+                    DaedalusStateDir = GetDaedalusStateDir().Replace("${APPDATA}", appData);
 
-                // Get OS Temp Path
-                TempPath = Path.Combine(Path.GetTempPath(), "adalotto");
+                    // Get OS Temp Path
+                    TempPath = Path.Combine(Path.GetTempPath(), "adalotto");
 
-                // Prepare Config files for Cardano Node
-                PrepareConfigFiles();
+                    // Prepare Config files for Cardano Node
+                    PrepareConfigFiles();
 
-                // Copy the blockchain data so we don't mess around with daedalus running
-                if (!Directory.Exists(Path.Combine(DaedalusStateDir, "lotto-chain")))
-                {
-                    var daedalusChain = Path.Combine(DaedalusStateDir, "chain");
-                    var lottoChain = Path.Combine(DaedalusStateDir, "lotto-chain");
-                    DirectoryCopy(daedalusChain, lottoChain, true);
-                }
-
-                CardanoNodeProcess = new Process
-                {
-                    StartInfo = new ProcessStartInfo
+                    // Copy the blockchain data so we don't mess around with daedalus running
+                    if (!Directory.Exists(Path.Combine(DaedalusStateDir, "lotto-chain")))
                     {
-                        FileName = $"{DaedalusInstallPath}\\cardano-node.exe",
-                        Arguments = string.Join(
-                        " ",
-                        "run",
-                        "--topology", $"\"{TempPath}\\config\\topology.json\"",
-                        "--database-path", $"\"{Path.Combine(DaedalusStateDir, "lotto-chain")}\"",
-                        "--config", $"\"{TempPath}\\config\\config.json\"",
-                        "--port", CARDANO_PORT,
-                        "--host-addr", "\"0.0.0.0\"",
-                        $"--socket-path={CARDANO_SOCKET_PATH}"
-                    ),
-                        UseShellExecute = false,
-                        RedirectStandardOutput = true
+                        var daedalusChain = Path.Combine(DaedalusStateDir, "chain");
+                        var lottoChain = Path.Combine(DaedalusStateDir, "lotto-chain");
+                        DirectoryCopy(daedalusChain, lottoChain, true);
                     }
-                };
-                CardanoNodeProcess.OutputDataReceived += OnOutputDataReceived;
-                CardanoNodeProcess.Start();
-                CardanoNodeProcess.BeginOutputReadLine();
+
+                    CardanoNodeProcess = new Process
+                    {
+                        StartInfo = new ProcessStartInfo
+                        {
+                            FileName = $"{DaedalusInstallPath}\\cardano-node.exe",
+                            Arguments = string.Join(
+                            " ",
+                            "run",
+                            "--topology", $"\"{TempPath}\\config\\topology.json\"",
+                            "--database-path", $"\"{Path.Combine(DaedalusStateDir, "lotto-chain")}\"",
+                            "--config", $"\"{TempPath}\\config\\config.json\"",
+                            "--port", CARDANO_PORT,
+                            "--host-addr", "\"0.0.0.0\"",
+                            $"--socket-path={CARDANO_SOCKET_PATH}"
+                        ),
+                            UseShellExecute = false,
+                            RedirectStandardOutput = true
+                        }
+                    };
+                    CardanoNodeProcess.OutputDataReceived += OnOutputDataReceived;
+                    CardanoNodeProcess.Start();
+                    CardanoNodeProcess.BeginOutputReadLine();
+                }
+                else
+                {
+					DaedalusNotFound?.Invoke(this, new EventArgs());
+                }
             });
         }
 
@@ -332,7 +339,6 @@ namespace ADALotto.ViewModels
                         IsWalletStarted = true;
                         await StartWalletAsync();
                     }
-
                 }
             }
         }
@@ -456,7 +462,6 @@ namespace ADALotto.ViewModels
                 {
                     Combination = Combination
                 });
-                await RefreshWalletAsync();
 
                 if (!string.IsNullOrEmpty(txId))
                 {
@@ -470,14 +475,15 @@ namespace ADALotto.ViewModels
                         }
                         await Task.Delay(1000);
                     }
-					TicketBuyComplete?.Invoke(this, new EventArgs());
-                	Combination = new int[Digits];
+                    TicketBuyComplete?.Invoke(this, new EventArgs());
+                    Combination = new int[Digits];
+                    await RefreshWalletAsync();
                 }
-				else
-				{
-					TransactionFail?.Invoke(this, new EventArgs());
-				}
-				LoadingEndRequest?.Invoke(this, new EventArgs());
+                else
+                {
+                    TransactionFail?.Invoke(this, new EventArgs());
+                }
+                LoadingEndRequest?.Invoke(this, new EventArgs());
             }
         }
 
@@ -485,6 +491,7 @@ namespace ADALotto.ViewModels
         {
             if (CurrentWallet != null && CurrentWallet.Balance.Total != null)
             {
+                LoadingStartRequest?.Invoke(this, new LoadingStartEventArgs { Message = "Processing Withdrawal, please wait..." });
                 var fee = await CurrentWallet.EstimateFee(
                     CurrentWallet.Balance.Total.Quantity,
                     walletAddress);
@@ -494,7 +501,26 @@ namespace ADALotto.ViewModels
                     walletAddress);
 
                 var txId = await CurrentWallet.SendAsync(CurrentWallet.Balance.Total.Quantity - newFee, walletAddress, passphrase);
-                await RefreshWalletAsync();
+
+                if (!string.IsNullOrEmpty(txId))
+                {
+                    Transaction? tx;
+                    while (true)
+                    {
+                        tx = await CurrentWallet.GetTransactionByIdAsync(txId);
+                        if (tx != null && tx.Status == TransactionStatus.InLedger)
+                        {
+                            break;
+                        }
+                        await Task.Delay(1000);
+                    }
+                    await RefreshWalletAsync();
+                }
+                else
+                {
+                    TransactionFail?.Invoke(this, new EventArgs());
+                }
+                LoadingEndRequest?.Invoke(this, new EventArgs());
             }
         }
 
