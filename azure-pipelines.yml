@@ -23,3 +23,9 @@ steps:
       archiveFile: '$(Build.ArtifactStagingDirectory)/ADALotto_$(Build.BuildId).zip'
       replaceExistingArchive: true
       verbose: true
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      ArtifactName: 'build'
+      publishLocation: 'Container'
