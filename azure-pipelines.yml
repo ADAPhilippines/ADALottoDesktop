@@ -20,7 +20,7 @@ steps:
       rootFolderOrFile: 'src\ADALotto\bin\Release\netcoreapp3.1\win-x64\publish\ADALotto.exe'
       includeRootFolder: false
       archiveType: 'zip'
-      archiveFile: '$(Build.ArtifactStagingDirectory)/ADALotto_$(Build.BuildId).zip'
+      archiveFile: '$(Build.ArtifactStagingDirectory)/ADALotto.zip'
       replaceExistingArchive: true
       verbose: true
 
