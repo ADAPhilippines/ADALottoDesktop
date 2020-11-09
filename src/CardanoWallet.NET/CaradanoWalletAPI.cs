@@ -74,7 +74,7 @@ namespace SAIB.CardanoWallet.NET
 
         public static void StopWallet()
         {
-            WalletProcess?.Kill(true);
+            WalletProcess?.Kill();
         }
 
         public static async Task<string[]> GenerateMnemonicsAsync(int? size = 24)
