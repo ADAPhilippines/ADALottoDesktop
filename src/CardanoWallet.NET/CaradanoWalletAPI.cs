@@ -63,7 +63,8 @@ namespace SAIB.CardanoWallet.NET
                         "--mainnet"),
                     UseShellExecute = false,
                     CreateNoWindow = true,
-                    RedirectStandardOutput = true
+                    RedirectStandardOutput = true,
+                    RedirectStandardInput = true
                 }
             };
             WalletProcess.OutputDataReceived += (object sender, DataReceivedEventArgs e) => Console.WriteLine(e.Data);
@@ -73,7 +74,7 @@ namespace SAIB.CardanoWallet.NET
 
         public static void StopWallet()
         {
-            WalletProcess?.Kill();
+            WalletProcess?.Kill(true);
         }
 
         public static async Task<string[]> GenerateMnemonicsAsync(int? size = 24)

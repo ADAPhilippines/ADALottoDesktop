@@ -119,7 +119,7 @@ namespace ADALotto.ViewModels
         public event EventHandler? TransactionFail;
         public event EventHandler<LoadingStartEventArgs>? LoadingStartRequest;
         public event EventHandler? LoadingEndRequest;
-		public event EventHandler? DaedalusNotFound;
+        public event EventHandler? DaedalusNotFound;
         #endregion
         #region Constants
         private readonly string CARDANO_SOCKET_PATH = "\"\\\\.\\pipe\\cardano-lotto\"";
@@ -184,27 +184,32 @@ namespace ADALotto.ViewModels
                             $"--socket-path={CARDANO_SOCKET_PATH}"
                         ),
                             UseShellExecute = false,
-							CreateNoWindow = true,
-                            RedirectStandardOutput = true
+                            CreateNoWindow = true,
+                            RedirectStandardOutput = true,
+                            RedirectStandardError = true,
+                            RedirectStandardInput = true
                         }
                     };
                     CardanoNodeProcess.OutputDataReceived += OnOutputDataReceived;
+                    CardanoNodeProcess.ErrorDataReceived += OnErrorDataReceived;
                     CardanoNodeProcess.Start();
                     CardanoNodeProcess.BeginOutputReadLine();
+                    CardanoNodeProcess.BeginErrorReadLine();
                 }
                 else
                 {
-					DaedalusNotFound?.Invoke(this, new EventArgs());
+                    DaedalusNotFound?.Invoke(this, new EventArgs());
                 }
             });
         }
+
 
         private void PrepareConfigFiles()
         {
             var assembly = typeof(Program).Assembly;
             var resources = assembly.GetManifestResourceNames();
-			if(File.Exists(TempPath))
-            	Directory.Delete(TempPath, true);
+            if (File.Exists(TempPath))
+                Directory.Delete(TempPath, true);
 
             foreach (string resource in resources)
             {
@@ -341,8 +346,17 @@ namespace ADALotto.ViewModels
                         IsWalletStarted = true;
                         await StartWalletAsync();
                     }
+                    else
+                    {
+                        await RefreshWalletAsync();
+                    }
                 }
             }
+        }
+
+        private void OnErrorDataReceived(object sender, DataReceivedEventArgs e)
+        {
+            Console.WriteLine(e.Data);
         }
 
         private async Task StartWalletAsync()
@@ -360,39 +374,6 @@ namespace ADALotto.ViewModels
 
             if (CurrentWallet == null)
                 NewWalletRequest?.Invoke(this, new EventArgs());
-            else
-                StartWalletPolling();
-        }
-
-        private void StartWalletPolling()
-        {
-            new Thread(new ThreadStart(async () =>
-            {
-                while (true)
-                {
-                    if (CurrentWallet != null)
-                    {
-                        await RefreshWalletAsync();
-                        if (CurrentWallet.State != null && CurrentWallet.State.Status == WalletStatus.Syncing)
-                        {
-                            AppStatus = AppStatus.Syncing;
-                            if (CurrentWallet.State.Progress != null)
-                                NodeSyncProgress = Math.Round(CurrentWallet.State?.Progress?.Quantity ?? 0, 2);
-                        }
-                        else if (CurrentWallet.State != null && CurrentWallet.State.Status == WalletStatus.Ready)
-                        {
-                            AppStatus = AppStatus.Online;
-                            NodeSyncProgress = 100;
-                        }
-                        if (WalletAddress == null || WalletAddress == string.Empty)
-                        {
-                            WalletAddress = CurrentWallet.Addresses.FirstOrDefault().Id ?? string.Empty;
-                            GenerateAddressQR();
-                        }
-                    }
-                    await Task.Delay(1000 * 5);
-                }
-            })).Start();
         }
 
         private async Task RefreshWalletAsync()
@@ -401,6 +382,23 @@ namespace ADALotto.ViewModels
             {
                 await CurrentWallet.RefreshAsync();
                 WalletBalance = Math.Round(CardanoWalletAPI.LovelaceToAda(CurrentWallet.Balance?.Total?.Quantity), 6);
+
+                if (CurrentWallet.State != null && CurrentWallet.State.Status == WalletStatus.Syncing)
+                {
+                    AppStatus = AppStatus.Syncing;
+                    if (CurrentWallet.State.Progress != null)
+                        NodeSyncProgress = Math.Round(CurrentWallet.State?.Progress?.Quantity ?? 0, 2);
+                }
+                else if (CurrentWallet.State != null && CurrentWallet.State.Status == WalletStatus.Ready)
+                {
+                    AppStatus = AppStatus.Online;
+                    NodeSyncProgress = 100;
+                }
+                if (WalletAddress == null || WalletAddress == string.Empty)
+                {
+                    WalletAddress = CurrentWallet.Addresses.FirstOrDefault().Id ?? string.Empty;
+                    GenerateAddressQR();
+                }
             }
         }
 
@@ -418,18 +416,11 @@ namespace ADALotto.ViewModels
         public void GenerateWalletWithPass(string pass)
         {
             CurrentWallet = new CardanoWallet("adalotto", pass);
-            CurrentWallet.WalletRestoring += OnWalletRestoring;
         }
 
         public void GenerateWalletWithPass(string pass, string[] _mnemonics)
         {
             CurrentWallet = new CardanoWallet("adalotto", pass, _mnemonics);
-            CurrentWallet.WalletRestoring += OnWalletRestoring;
-        }
-
-        private void OnWalletRestoring(object? sender, EventArgs e)
-        {
-            StartWalletPolling();
         }
 
         public void StopNode()
