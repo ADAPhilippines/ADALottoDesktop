@@ -210,12 +210,12 @@
 						</StackPanel>
 						<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" DockPanel.Dock="Top" Margin="0,0,0,25">
 							<TextBlock Classes="ALLabel" Text="Time Remaining: " />
-							<TextBlock Classes="ALLabelValue" Foreground="#FF8F60" Text="00:00:00"/>
+							<TextBlock Classes="ALLabelValue" Foreground="#FF8F60" Text="{Binding RemainingRoundTimeDisplay}"/>
 						</StackPanel>
 						<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" DockPanel.Dock="Top" Margin="0,0,0,28">
 							<TextBlock Classes="ALLabel" Text="Prize: " />
 							<TextBlock Classes="ADAValue"  Text="₳ " />
-							<TextBlock Classes="ALLabelValue" Foreground="#FF8F60" Text="10,000"/>
+							<TextBlock Classes="ALLabelValue" Foreground="#FF8F60" Text="{Binding GamePrizeDisplay}"/>
 						</StackPanel>
 						<Button Classes="action" Command="{Binding ConfirmBuyTicket}" IsEnabled="{Binding IsSynced}" Width="200" HorizontalAlignment="Center" Margin="10">Buy Ticket for ₳ 1</Button>
 					</StackPanel>

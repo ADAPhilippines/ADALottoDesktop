@@ -16,6 +16,9 @@ using Avalonia.Media.Imaging;
 using System.Drawing.Imaging;
 using ADALotto.Events;
 using SAIB.CardanoWallet.NET.Models;
+using ADALotto.ClientLib;
+using ADALottoModels;
+using Transaction = SAIB.CardanoWallet.NET.Models.Transaction;
 
 namespace ADALotto.ViewModels
 {
@@ -61,11 +64,34 @@ namespace ADALotto.ViewModels
             get => _blockNo;
             set => this.RaiseAndSetIfChanged(ref _blockNo, value);
         }
-        private decimal? _walletBalance = 0;
-        public decimal? WalletBalance
+        private decimal _walletBalance = 0;
+        public decimal WalletBalance
         {
             get => _walletBalance;
             set => this.RaiseAndSetIfChanged(ref _walletBalance, value);
+        }
+        private decimal _gamePrize = 0;
+        public decimal GamePrize
+        {
+            get => _gamePrize;
+            set
+            {
+                this.RaiseAndSetIfChanged(ref _gamePrize, value);
+                GamePrizeDisplay = _gamePrize.ToString("#,0.00");
+            }
+        }
+        private string _gamePrizeDisplay = "0";
+        public string GamePrizeDisplay
+        {
+            get => _gamePrizeDisplay;
+            set => this.RaiseAndSetIfChanged(ref _gamePrizeDisplay, value);
+        }
+        private TimeSpan remainingRoundTimespan = TimeSpan.FromSeconds(0);
+        private string _remainingRoundTimeDisplay = "00:00:00";
+        public string RemainingRoundTimeDisplay
+        {
+            get => _remainingRoundTimeDisplay;
+            set => this.RaiseAndSetIfChanged(ref _remainingRoundTimeDisplay, value);
         }
         private string? _walletAddress = string.Empty;
         public string? WalletAddress
@@ -131,6 +157,8 @@ namespace ADALotto.ViewModels
         private string TempPath { get; set; } = string.Empty;
         private bool IsWalletStarted { get; set; }
         private CardanoWallet? CurrentWallet { get; set; }
+        private ALGame? Game { get; set; }
+        private ALGameState? GameState { get; set; }
         #endregion
 
         /// <summary>
@@ -195,6 +223,7 @@ namespace ADALotto.ViewModels
                     CardanoNodeProcess.Start();
                     CardanoNodeProcess.BeginOutputReadLine();
                     CardanoNodeProcess.BeginErrorReadLine();
+                    StartGame();
                 }
                 else
                 {
@@ -357,6 +386,40 @@ namespace ADALotto.ViewModels
         private void OnErrorDataReceived(object sender, DataReceivedEventArgs e)
         {
             Console.WriteLine(e.Data);
+        }
+
+        private void StartGame()
+        {
+            Game = new ALGame("https://api.adaph.io/graphql/..", "addr1q8d3vckkpdry0g79ktnrka0ad06hf6qttfpfctskp2trqedxcx0k9jt8xm6jdpexl3ufghxhs5dtp0w350cah832chpssyvz9s");
+            GameState = new ALGameState();
+            Game.Start(GameState);
+            Game.OnFetch += OnGameDataFetched;
+            _ = StartGameTimeCountdownAsync();
+        }
+
+        private void OnGameDataFetched(object? sender, EventArgs e)
+        {
+            if (Game != null)
+            {
+                GamePrize = Math.Round((decimal)Game.GameState.CurrentPot / 1000000, 6);
+                remainingRoundTimespan = Game.RemainingRoundTime;
+                RefreshRemainingRoundTimeDisplay();
+            }
+        }
+
+        private void RefreshRemainingRoundTimeDisplay()
+        {
+            RemainingRoundTimeDisplay = $"{Math.Floor(remainingRoundTimespan.TotalHours).ToString().PadLeft(2, '0')}:{remainingRoundTimespan:mm}:{remainingRoundTimespan:ss}";
+        }
+
+        private async Task StartGameTimeCountdownAsync()
+        {
+            while(true)
+            {
+                remainingRoundTimespan = remainingRoundTimespan.Subtract(TimeSpan.FromSeconds(1));
+                RefreshRemainingRoundTimeDisplay();
+                await Task.Delay(1000);
+            }
         }
 
         private async Task StartWalletAsync()

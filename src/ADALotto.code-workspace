@@ -5,6 +5,12 @@
 		},
 		{
 			"path": "CardanoWallet.NET"
+		},
+		{
+			"path": "ADALottoModels"
+		},
+		{
+			"path": "ADALottoClientLib"
 		}
 	],
 	"settings": {}

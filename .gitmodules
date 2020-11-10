@@ -1,0 +1,6 @@
+[submodule "src/ADALottoModels"]
+	path = src/ADALottoModels
+	url = git@github.com:ADAPhilippines/ADALottoModels.git
+[submodule "src/ADALottoClientLib"]
+	path = src/ADALottoClientLib
+	url = git@github.com:ADAPhilippines/ADALottoClientLib.git

@@ -26,6 +26,8 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\CardanoWallet.NET\CardanoWallet.NET.csproj" />
+	  <ProjectReference Include="..\ADALottoClientLib\src\ADALottoClient.csproj" />
+	  <ProjectReference Include="..\ADALottoModels\src\ADALottoModels.csproj" />
 	</ItemGroup>
 	<ItemGroup>
 		<Content Remove="config/config.json" />
