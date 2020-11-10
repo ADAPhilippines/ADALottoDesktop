@@ -30,7 +30,7 @@ namespace ADALotto.ViewModels
         public string DaedalusStateDir { get; private set; } = string.Empty;
         public Process? CardanoNodeProcess { get; private set; }
         private AppStatus _appStatus = AppStatus.Offline;
-        private string LottoOfficialWallet { get; set; } = "addr1q8nrqg4s73skqfyyj69mzr7clpe8s7ux9t8z6l55x2f2xuqra34p9pswlrq86nq63hna7p4vkrcrxznqslkta9eqs2nscfavlf";
+        private string LottoOfficialWallet { get; set; } = "addr1q8d3vckkpdry0g79ktnrka0ad06hf6qttfpfctskp2trqedxcx0k9jt8xm6jdpexl3ufghxhs5dtp0w350cah832chpssyvz9s";
         public AppStatus AppStatus
         {
             get => _appStatus;
@@ -105,6 +105,13 @@ namespace ADALotto.ViewModels
             get => _walletQR;
             set => this.RaiseAndSetIfChanged(ref _walletQR, value);
         }
+        private bool _isInitialGameSyncComplete = false;
+        public bool IsInitialGameSyncComplete => _isInitialGameSyncComplete;
+        public bool IsPurchaseEnabled
+        {
+            //@TODO add is game running
+            get => IsSynced && (Game?.IsGameRunning ?? false) && (!GameState?.IsDrawing ?? false) && _isInitialGameSyncComplete;
+        }
         public bool IsSynced
         {
             get
@@ -133,7 +140,6 @@ namespace ADALotto.ViewModels
                 _digits = value;
             }
         }
-
         private int _ticketPrice = 1 * 1000000;
 
         #endregion
@@ -146,6 +152,7 @@ namespace ADALotto.ViewModels
         public event EventHandler<LoadingStartEventArgs>? LoadingStartRequest;
         public event EventHandler? LoadingEndRequest;
         public event EventHandler? DaedalusNotFound;
+        public event EventHandler<GameFetchEventArgs>? GameFetch;
         #endregion
         #region Constants
         private readonly string CARDANO_SOCKET_PATH = "\"\\\\.\\pipe\\cardano-lotto\"";
@@ -390,20 +397,27 @@ namespace ADALotto.ViewModels
 
         private void StartGame()
         {
-            Game = new ALGame("https://api.adaph.io/graphql/..", "addr1q8d3vckkpdry0g79ktnrka0ad06hf6qttfpfctskp2trqedxcx0k9jt8xm6jdpexl3ufghxhs5dtp0w350cah832chpssyvz9s");
+            Game = new ALGame("https://api.adaph.io/graphql/..", LottoOfficialWallet);
             GameState = new ALGameState();
             Game.Start(GameState);
-            Game.OnFetch += OnGameDataFetched;
+            Game.Fetch += OnGameDataFetched;
+            Game.InitialSyncComplete += (o, e) =>
+            {
+                _isInitialGameSyncComplete = true;
+                this.RaisePropertyChanged("IsPurchaseEnabled");
+            };
             _ = StartGameTimeCountdownAsync();
         }
 
         private void OnGameDataFetched(object? sender, EventArgs e)
         {
+            this.RaisePropertyChanged("IsPurchaseEnabled");
             if (Game != null)
             {
                 GamePrize = Math.Round((decimal)Game.GameState.CurrentPot / 1000000, 6);
                 remainingRoundTimespan = Game.RemainingRoundTime;
                 RefreshRemainingRoundTimeDisplay();
+                GameFetch?.Invoke(this, new GameFetchEventArgs { Game = Game, GameState = GameState });
             }
         }
 
@@ -414,9 +428,11 @@ namespace ADALotto.ViewModels
 
         private async Task StartGameTimeCountdownAsync()
         {
-            while(true)
+            while (true)
             {
-                remainingRoundTimespan = remainingRoundTimespan.Subtract(TimeSpan.FromSeconds(1));
+                if(remainingRoundTimespan.TotalSeconds > 0)
+                    remainingRoundTimespan = remainingRoundTimespan.Subtract(TimeSpan.FromSeconds(1));
+                    
                 RefreshRemainingRoundTimeDisplay();
                 await Task.Delay(1000);
             }

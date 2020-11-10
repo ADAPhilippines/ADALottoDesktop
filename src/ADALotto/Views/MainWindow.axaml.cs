@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using ADALotto.Events;
 using ADALotto.ViewModels;
+using ADALottoModels;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -15,7 +17,7 @@ namespace ADALotto.Views
 {
     public class MainWindow : FluentWindow
     {
-        private TextBox[]? LottoBoxes { get; set; }
+        private List<TextBox>? LottoBoxes { get; set; }
         private MessageBox? LoadingBox { get; set; }
         public MainWindowViewModel? ViewModel
         {
@@ -35,8 +37,9 @@ namespace ADALotto.Views
         {
             if (ViewModel != null)
             {
+                LottoBoxes = new List<TextBox>();
                 ViewModel.Digits = 6;
-                GenerateLottoBoxes();
+                RefreshLottoBoxes();
                 ViewModel.NewWalletRequest += OnNewWalletRequest;
                 ViewModel.TicketBuyComplete += OnTicketBuyCompleted;
                 ViewModel.BuyRequest += OnTicketBuyRequest;
@@ -45,8 +48,75 @@ namespace ADALotto.Views
                 ViewModel.LoadingStartRequest += OnLoadingStartRequest;
                 ViewModel.LoadingEndRequest += OnLoadingEndRequest;
                 ViewModel.DaedalusNotFound += OnDaedalusNotFound;
+                ViewModel.GameFetch += OnGameFetched;
                 await ViewModel.InitializeCardanoNodeAsync();
             }
+        }
+
+        private void OnGameFetched(object? sender, GameFetchEventArgs e)
+        {
+            Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (e.GameState != null)
+                {
+                    if (ViewModel != null && e.GameState.GameGenesisTxMeta != null)
+                        ViewModel.Digits = e.GameState.GameGenesisTxMeta.Digits;
+                    RefreshPastCombinations(e.GameState);
+                }
+                RefreshLottoBoxes(e);
+            });
+        }
+
+        private void RefreshPastCombinations(ALGameState gameState)
+        {
+            Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                StackPanel spPrevResults = this.Find<StackPanel>("spPrevCombs");
+                spPrevResults.Children.Clear();
+
+                if (gameState.PreviousResults != null)
+                {
+                    foreach (var r in gameState.PreviousResults)
+                    {
+                        var grid = new Grid
+                        {
+                            ColumnDefinitions = new ColumnDefinitions("1*,1*,1*")
+                        };
+
+                        var tb1 = new TextBlock
+                        {
+                            Classes = new Classes("ALResultRow"),
+                            TextAlignment = TextAlignment.Center
+                        };
+
+                        tb1.Text = r.DrawDate.ToString("yyyy-MM-dd");
+
+                        var tb2 = new TextBlock
+                        {
+                            Classes = new Classes("ALResultRow"),
+                            TextAlignment = TextAlignment.Center
+                        };
+                        tb2.Text = string.Join('-', r.Numbers.Select(n => n.Number));
+
+                        var tb3 = new TextBlock
+                        {
+                            Classes = new Classes("ALResultRow"),
+                            TextAlignment = TextAlignment.Center
+                        };
+                        tb3.Text = $"₳ {(double)r.Prize / 1000000:N}";
+
+                        grid.Children.Add(tb1);
+                        grid.Children.Add(tb2);
+                        grid.Children.Add(tb3);
+
+                        Grid.SetColumn(tb1, 0);
+                        Grid.SetColumn(tb2, 1);
+                        Grid.SetColumn(tb3, 2);
+
+                        spPrevResults.Children.Add(grid);
+                    }
+                }
+            });
         }
 
         private void OnDaedalusNotFound(object? sender, EventArgs e)
@@ -150,27 +220,63 @@ namespace ADALotto.Views
             AvaloniaXamlLoader.Load(this);
         }
 
-        /// <summary>
-        /// Code to Generate Lotto Boxes Dynamically
-        /// </summary>
-        private void GenerateLottoBoxes()
+        private void RefreshLottoBoxes(GameFetchEventArgs? e = null)
         {
             var digits = ViewModel?.Digits ?? 0;
-
-            LottoBoxes = new TextBox[digits];
-            var panelLottoNumbers = this.FindControl<StackPanel>("panelLottoNumbers");
-            panelLottoNumbers.Children.Clear();
-
-            for (int x = 0; x < digits; x++)
+            if (LottoBoxes != null && digits != LottoBoxes.Count)
             {
-                var newLottoBox = new TextBox();
-                newLottoBox.Classes.Add("lottobox");
-                newLottoBox.Watermark = "??";
-                newLottoBox.TextAlignment = TextAlignment.Center;
-                newLottoBox.KeyUp += OnLottNumberInput;
-                newLottoBox.Tag = x;
-                panelLottoNumbers.Children.Add(newLottoBox);
-                LottoBoxes[x] = newLottoBox;
+                var panelLottoNumbers = this.FindControl<StackPanel>("panelLottoNumbers");
+                var boxCountDiff = LottoBoxes.Count - digits;
+
+                if (boxCountDiff > 0)
+                {
+                    for (int x = LottoBoxes.Count - 1; x >= digits; x--)
+                    {
+                        var box = LottoBoxes[x];
+                        LottoBoxes.Remove(box);
+                        panelLottoNumbers.Children.Remove(box);
+                    }
+                }
+                else
+                {
+                    for (int x = LottoBoxes.Count; x < digits; x++)
+                    {
+                        var newLottoBox = new TextBox();
+                        newLottoBox.Classes.Add("lottobox");
+                        newLottoBox.Watermark = "??";
+                        newLottoBox.TextAlignment = TextAlignment.Center;
+                        newLottoBox.KeyUp += OnLottNumberInput;
+                        newLottoBox.Tag = x;
+                        panelLottoNumbers.Children.Add(newLottoBox);
+                        LottoBoxes.Add(newLottoBox);
+                    }
+                }
+            }
+
+            var isDrawing = e != null && e.GameState != null && e.GameState.IsDrawing && (ViewModel?.IsInitialGameSyncComplete ?? false) && e.GameState.IsRunning;
+            if (isDrawing && LottoBoxes != null && e != null && e.Game != null && ViewModel != null)
+            {
+                ViewModel.Combination = new int[digits];
+                var combination = e.Game.Combination.ToArray();
+                for (var x = 0; x < LottoBoxes.Count; x++)
+                {
+                    var lottoBox = LottoBoxes[x];
+                    lottoBox.IsEnabled = false;
+                    lottoBox.Text = x > combination.Length - 1 ? "??" : combination[x].Number;
+                }
+            }
+            else if (LottoBoxes != null && !isDrawing && ViewModel != null && ViewModel.Combination != null)
+            {
+                for (var x = 0; x < LottoBoxes.Count; x++)
+                {
+					ViewModel.Combination[x] = 0;
+                    var lottoBox = LottoBoxes[x];
+                    if (!lottoBox.IsEnabled)
+                    {
+                        lottoBox.IsEnabled = true;
+                        lottoBox.Text = string.Empty;
+                    }
+                }
             }
         }
 
@@ -187,19 +293,16 @@ namespace ADALotto.Views
 
             if (textBox != null && textBox.Text != null)
             {
-                if (textBox.Text.Length >= 2 && numberIdx < ViewModel?.Digits - 1)
+                if (LottoBoxes != null && LottoBoxes.Count > 1)
                 {
-                    if (LottoBoxes != null)
+                    if (textBox.Text.Length >= 2 && numberIdx < ViewModel?.Digits - 1)
                     {
                         LottoBoxes[numberIdx + 1].Focus();
                         LottoBoxes[numberIdx + 1].SelectionStart = 2;
                         LottoBoxes[numberIdx + 1].SelectionEnd = 2;
                     }
-                }
 
-                if (textBox.Text.Length <= 0 && e.Key == Key.Back && numberIdx > 0)
-                {
-                    if (LottoBoxes != null)
+                    if (textBox.Text.Length <= 0 && e.Key == Key.Back && numberIdx > 0)
                     {
                         LottoBoxes[numberIdx - 1].Focus();
                         LottoBoxes[numberIdx - 1].SelectionStart = 2;
@@ -225,7 +328,7 @@ namespace ADALotto.Views
                     }
                 }
             }
-            else if (textBox?.Text == null && e.Key == Key.Back && LottoBoxes != null)
+            else if (textBox?.Text == null && e.Key == Key.Back && LottoBoxes != null && LottoBoxes.Count > 1)
             {
                 LottoBoxes[numberIdx - 1].Focus();
                 LottoBoxes[numberIdx - 1].SelectionStart = 2;
