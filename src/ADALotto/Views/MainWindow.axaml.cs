@@ -261,7 +261,7 @@ namespace ADALotto.Views
                 for (var x = 0; x < LottoBoxes.Count; x++)
                 {
                     var lottoBox = LottoBoxes[x];
-                    lottoBox.IsEnabled = false;
+                    lottoBox.IsReadOnly = true;
                     lottoBox.Text = x > combination.Length - 1 ? "??" : combination[x].Number;
                 }
             }
@@ -271,9 +271,9 @@ namespace ADALotto.Views
                 {
 					ViewModel.Combination[x] = 0;
                     var lottoBox = LottoBoxes[x];
-                    if (!lottoBox.IsEnabled)
+                    if (lottoBox.IsReadOnly)
                     {
-                        lottoBox.IsEnabled = true;
+                        lottoBox.IsReadOnly = false;
                         lottoBox.Text = string.Empty;
                     }
                 }
