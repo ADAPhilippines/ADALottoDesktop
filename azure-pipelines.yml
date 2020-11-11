@@ -12,8 +12,11 @@ pool:
 steps:
 
   - script: |
-      git submodule init
-      git submodule update --recursive --remote
+      cd src/
+      Remove-Item .\ADALottoClientLib -Recurse -Force -Confirm:$false
+      Remove-Item .\ADALottoModels -Recurse -Force -Confirm:$false
+      git clone git@github.com:ADAPhilippines/ADALottoClientLib.git
+      git git@github.com:ADAPhilippines/ADALottoModels.git
     displayName: 'Submodule Update'
     
   - script: |
