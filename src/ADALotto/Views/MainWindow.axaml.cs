@@ -50,8 +50,18 @@ namespace ADALotto.Views
                 ViewModel.LoadingEndRequest += OnLoadingEndRequest;
                 ViewModel.DaedalusNotFound += OnDaedalusNotFound;
                 ViewModel.GameFetch += OnGameFetched;
+                ViewModel.InvalidCombinationRequest += OnInvalidCombinationRequest;
                 await ViewModel.InitializeCardanoNodeAsync();
             }
+        }
+
+        private void OnInvalidCombinationRequest(object? sender, EventArgs e)
+        {
+            Dispatcher.UIThread.InvokeAsync(async () =>
+            {
+                await MessageBox.ShowAsync("Error", "Digits must be between 1 - 99...", "Ok", this);
+                LottoBoxes?.ForEach(l => l.Text = string.Empty);
+            });
         }
 
         private void OnGameFetched(object? sender, GameFetchEventArgs e)
@@ -166,7 +176,7 @@ namespace ADALotto.Views
         {
             Dispatcher.UIThread.InvokeAsync(async () =>
             {
-                await MessageBox.ShowShow("Error", "Daedalus is required to use ADALotto, please install it and try again...", "Exit", this);
+                await MessageBox.ShowAsync("Error", "Daedalus is required to use ADALotto, please install it and try again...", "Exit", this);
                 this.Close();
             });
         }
@@ -202,7 +212,7 @@ namespace ADALotto.Views
         {
             Dispatcher.UIThread.InvokeAsync(() =>
             {
-                _ = MessageBox.ShowShow("Error", "Transaction failed, try again in a bit...", "Ok", this);
+                _ = MessageBox.ShowAsync("Error", "Transaction failed, try again in a bit...", "Ok", this);
             });
         }
 

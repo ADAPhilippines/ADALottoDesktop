@@ -50,7 +50,7 @@ namespace ADALotto.ViewModels
             get => _nodeSyncProgress;
             set => this.RaiseAndSetIfChanged(ref _nodeSyncProgress, value);
         }
-            private int _epoch = 0;
+        private int _epoch = 0;
         public int Epoch
         {
             get => _epoch;
@@ -156,6 +156,7 @@ namespace ADALotto.ViewModels
         public event EventHandler<LoadingStartEventArgs>? LoadingStartRequest;
         public event EventHandler? LoadingEndRequest;
         public event EventHandler? DaedalusNotFound;
+        public event EventHandler? InvalidCombinationRequest;
         public event EventHandler<GameFetchEventArgs>? GameFetch;
         #endregion
         #region Constants
@@ -538,15 +539,22 @@ namespace ADALotto.ViewModels
         {
             if (CurrentWallet != null && Combination != null)
             {
-                var fee = await CurrentWallet.EstimateFee(_ticketPrice, LottoOfficialWallet, new LottoTicket
+                if (Combination.Any(c => c <= 0 || c > 99 || Combination.Distinct().Count() != Combination.Length))
                 {
-                    Combination = Combination
-                });
-
-                if (fee > 0)
-                    BuyRequest?.Invoke(this, new ConfirmBuyTicketEventArgs { Price = _ticketPrice, Fee = fee, Combination = Combination });
+                    InvalidCombinationRequest?.Invoke(this, new EventArgs());
+                }
                 else
-                    TransactionFail?.Invoke(this, new EventArgs());
+                {
+                    var fee = await CurrentWallet.EstimateFee(_ticketPrice, LottoOfficialWallet, new LottoTicket
+                    {
+                        Combination = Combination
+                    });
+
+                    if (fee > 0)
+                        BuyRequest?.Invoke(this, new ConfirmBuyTicketEventArgs { Price = _ticketPrice, Fee = fee, Combination = Combination });
+                    else
+                        TransactionFail?.Invoke(this, new EventArgs());
+                }
             }
         }
 

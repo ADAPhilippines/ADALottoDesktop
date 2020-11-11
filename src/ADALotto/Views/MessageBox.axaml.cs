@@ -75,7 +75,7 @@ namespace ADALotto.Views
                 tbButtonLabel.Text = ButtonLabel;
         }
 
-        public static async Task ShowShow(string title, string message, string buttonLabel = "Ok", Window? parent = null)
+        public static async Task ShowAsync(string title, string message, string buttonLabel = "Ok", Window? parent = null)
         {
             await new MessageBox
             {

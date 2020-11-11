@@ -49,15 +49,15 @@ namespace ADALotto.Views
             var txtConfPass = this.FindControl<TextBox>("txtConfirmPassphrase");
             if (txtNewPass.Text == null)
             {
-                MessageBox.ShowShow("Error", "You must enter a passphrase!", "Ok", this);
+                MessageBox.ShowAsync("Error", "You must enter a passphrase!", "Ok", this);
             }
             else if (txtNewPass.Text.Length < 10 || txtNewPass.Text.Length > 255)
             {
-                MessageBox.ShowShow("Error", "Passphrase must be between 10 to 255 characters!", "Ok", this);
+                MessageBox.ShowAsync("Error", "Passphrase must be between 10 to 255 characters!", "Ok", this);
             }
             else if (txtNewPass.Text != txtConfPass.Text)
             {
-                MessageBox.ShowShow("Error", "Passphrase must match!", "Ok", this);
+                MessageBox.ShowAsync("Error", "Passphrase must match!", "Ok", this);
             }
             else
             {
