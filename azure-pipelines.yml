@@ -15,8 +15,8 @@ steps:
       cd src/
       rmdir /Q /S .\ADALottoClientLib
       rmdir /Q /S .\ADALottoModels
-      git clone git@github.com:ADAPhilippines/ADALottoClientLib.git
-      git git@github.com:ADAPhilippines/ADALottoModels.git
+      git clone https://github.com/ADAPhilippines/ADALottoClientLib.git
+      git clone https://github.com/ADAPhilippines/ADALottoModels.git
     displayName: 'Submodule Update'
     
   - script: |
