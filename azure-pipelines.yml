@@ -10,9 +10,13 @@ pool:
   vmImage: 'windows-latest'
 
 steps:
+
+  - script: |
+      git submodule update --recursive --remote
+    displayName: 'Submodule Update'
+    
   - script: |
       cd src/ADALotto
-      git submodule update --recursive --remote
       dotnet publish -c Release -r win-x64 -p:PublishSingleFile=true --self-contained true
     displayName: 'Build ADALotto'
 
