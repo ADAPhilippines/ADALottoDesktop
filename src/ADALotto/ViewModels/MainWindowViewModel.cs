@@ -119,7 +119,7 @@ namespace ADALotto.ViewModels
         {
             get
             {
-                return AppStatus == AppStatus.Online && (Game?.IsInitialSyncFinished ?? false) && !_isWithdrawing && string.IsNullOrEmpty(WalletAddress);
+                return AppStatus == AppStatus.Online && (Game?.IsInitialSyncFinished ?? false) && !_isWithdrawing && !string.IsNullOrEmpty(WalletAddress);
             }
         }
         public bool IsNotSynced
@@ -505,6 +505,8 @@ namespace ADALotto.ViewModels
                 {
                     WalletAddress = CurrentWallet.Addresses.FirstOrDefault().Id ?? string.Empty;
                     GenerateAddressQR();
+                    this.RaisePropertyChanged("IsPurchaseEnabled");
+                    this.RaisePropertyChanged("IsSynced");
                 }
             }
         }
