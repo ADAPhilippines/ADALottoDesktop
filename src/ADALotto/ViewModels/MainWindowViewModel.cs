@@ -50,7 +50,7 @@ namespace ADALotto.ViewModels
             get => _nodeSyncProgress;
             set => this.RaiseAndSetIfChanged(ref _nodeSyncProgress, value);
         }
-        private int _epoch = 0;
+            private int _epoch = 0;
         public int Epoch
         {
             get => _epoch;
@@ -97,8 +97,8 @@ namespace ADALotto.ViewModels
             get => _remainingRoundTimeDisplay;
             set => this.RaiseAndSetIfChanged(ref _remainingRoundTimeDisplay, value);
         }
-        private string? _walletAddress = string.Empty;
-        public string? WalletAddress
+        private string _walletAddress = string.Empty;
+        public string WalletAddress
         {
             get => _walletAddress;
             set => this.RaiseAndSetIfChanged(ref _walletAddress, value);

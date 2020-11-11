@@ -56,7 +56,7 @@ namespace ADALotto.Views
 
         private void OnGameFetched(object? sender, GameFetchEventArgs e)
         {
-            Dispatcher.UIThread.InvokeAsync(() =>
+            Dispatcher.UIThread.InvokeAsync(async () =>
             {
                 if (e.GameState != null)
                 {
@@ -65,14 +65,56 @@ namespace ADALotto.Views
                     RefreshPastCombinations(e.GameState);
                 }
                 RefreshLottoBoxes(e);
+                await RefreshTicketsAsync();
             });
+        }
+
+        private async Task RefreshTicketsAsync()
+        {
+            var spTickets = this.Find<StackPanel>("spTickets");
+
+            if (ViewModel != null && !string.IsNullOrEmpty(ViewModel.WalletAddress) && ViewModel.Game != null)
+            {
+                var tickets = await ViewModel.Game.GetTicketsByAddressAsync(ViewModel.WalletAddress);
+                spTickets.Children.Clear();
+                foreach (var txId in tickets.Keys)
+                {
+                    var grid = new Grid
+                    {
+                        ColumnDefinitions = new ColumnDefinitions("1*,1*")
+                    };
+
+                    var tb1 = new TextBlock
+                    {
+                        Classes = new Classes("ALResultRow"),
+                        TextAlignment = TextAlignment.Center
+                    };
+
+                    tb1.Text = $"{txId.Substring(0, 7)}...{txId.Substring(txId.Length - 8, 7)}";
+
+                    var tb2 = new TextBlock
+                    {
+                        Classes = new Classes("ALResultRow"),
+                        TextAlignment = TextAlignment.Center
+                    };
+                    tb2.Text = tickets[txId];
+
+                    Grid.SetColumn(tb1, 0);
+                    Grid.SetColumn(tb2, 1);
+
+                    grid.Children.Add(tb1);
+                    grid.Children.Add(tb2);
+
+                    spTickets.Children.Add(grid);
+                }
+            }
         }
 
         private void RefreshPastCombinations(ALGameState gameState)
         {
             Dispatcher.UIThread.InvokeAsync(() =>
             {
-                StackPanel spPrevResults = this.Find<StackPanel>("spPrevCombs");
+                var spPrevResults = this.Find<StackPanel>("spPrevCombs");
                 spPrevResults.Children.Clear();
 
                 if (gameState.PreviousResults != null)
@@ -252,6 +294,19 @@ namespace ADALotto.Views
                         panelLottoNumbers.Children.Add(newLottoBox);
                         LottoBoxes.Add(newLottoBox);
                     }
+
+                    if (e != null && e.GameState != null)
+                    {
+                        if (e.GameState.PreviousResults == null || e.GameState.PreviousResults.Count() <= 0)
+                        {
+                            LottoBoxes.ForEach(l => l.IsReadOnly = false);
+                        }
+                    }
+                    else if (e == null)
+                    {
+                        LottoBoxes.ForEach(l => l.IsReadOnly = false);
+                    }
+
                 }
             }
 

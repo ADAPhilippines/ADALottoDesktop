@@ -234,40 +234,7 @@
 								<TextBlock Classes="ALResultTableHeader" Grid.Column="1" TextAlignment="Center">Combination</TextBlock>
 							</Grid>
 							<ScrollViewer Height="270" Grid.Row="1">
-								<StackPanel>
-									<Grid  ColumnDefinitions="1*,1*">
-										<TextBlock Classes="ALResultRow" Grid.Column="0" TextAlignment="Center">1234512323232323</TextBlock>
-										<TextBlock Classes="ALResultRow" Grid.Column="1" TextAlignment="Center">12-34-56-78-90</TextBlock>
-									</Grid>
-									<Grid  ColumnDefinitions="1*,1*">
-										<TextBlock Classes="ALResultRow" Grid.Column="0" TextAlignment="Center">1234512323232323</TextBlock>
-										<TextBlock Classes="ALResultRow" Grid.Column="1" TextAlignment="Center">12-34-56-78-90</TextBlock>
-									</Grid>
-									<Grid  ColumnDefinitions="1*,1*">
-										<TextBlock Classes="ALResultRow" Grid.Column="0" TextAlignment="Center">1234512323232323</TextBlock>
-										<TextBlock Classes="ALResultRow" Grid.Column="1" TextAlignment="Center">12-34-56-78-90</TextBlock>
-									</Grid>
-									<Grid  ColumnDefinitions="1*,1*">
-										<TextBlock Classes="ALResultRow" Grid.Column="0" TextAlignment="Center">1234512323232323</TextBlock>
-										<TextBlock Classes="ALResultRow" Grid.Column="1" TextAlignment="Center">12-34-56-78-90</TextBlock>
-									</Grid>
-									<Grid  ColumnDefinitions="1*,1*">
-										<TextBlock Classes="ALResultRow" Grid.Column="0" TextAlignment="Center">1234512323232323</TextBlock>
-										<TextBlock Classes="ALResultRow" Grid.Column="1" TextAlignment="Center">12-34-56-78-90</TextBlock>
-									</Grid>
-									<Grid  ColumnDefinitions="1*,1*">
-										<TextBlock Classes="ALResultRow" Grid.Column="0" TextAlignment="Center">1234512323232323</TextBlock>
-										<TextBlock Classes="ALResultRow" Grid.Column="1" TextAlignment="Center">12-34-56-78-90</TextBlock>
-									</Grid>
-									<Grid  ColumnDefinitions="1*,1*">
-										<TextBlock Classes="ALResultRow" Grid.Column="0" TextAlignment="Center">1234512323232323</TextBlock>
-										<TextBlock Classes="ALResultRow" Grid.Column="1" TextAlignment="Center">12-34-56-78-90</TextBlock>
-									</Grid>
-									<Grid  ColumnDefinitions="1*,1*">
-										<TextBlock Classes="ALResultRow" Grid.Column="0" TextAlignment="Center">1234512323232323</TextBlock>
-										<TextBlock Classes="ALResultRow" Grid.Column="1" TextAlignment="Center">12-34-56-78-90</TextBlock>
-									</Grid>
-								</StackPanel>
+								<StackPanel Name="spTickets" />
 							</ScrollViewer>
 						</Grid>
 					</DockPanel>
