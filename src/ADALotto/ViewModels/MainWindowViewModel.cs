@@ -34,7 +34,7 @@ namespace ADALotto.ViewModels
         public string DaedalusStateDir { get; private set; } = string.Empty;
         public Process? CardanoNodeProcess { get; private set; }
         private AppStatus _appStatus = AppStatus.Offline;
-        private string LottoOfficialWallet { get; set; } = "addr1q8d3vckkpdry0g79ktnrka0ad06hf6qttfpfctskp2trqedxcx0k9jt8xm6jdpexl3ufghxhs5dtp0w350cah832chpssyvz9s";
+        private string LottoOfficialWallet { get; set; } = "addr1q9xpjc00quag7hsp78wk2rw98xqnrala0crhj2envh922mrjm75lq8la77tk6cxrswxunxlx7fae3ypqhryq6hykjf6qjtfw3d";
         public AppStatus AppStatus
         {
             get => _appStatus;
