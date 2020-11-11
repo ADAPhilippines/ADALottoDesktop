@@ -113,14 +113,13 @@ namespace ADALotto.ViewModels
         public bool IsInitialGameSyncComplete => _isInitialGameSyncComplete;
         public bool IsPurchaseEnabled
         {
-            //@TODO add is game running
-            get => IsSynced && (Game?.IsGameRunning ?? false) && (!GameState?.IsDrawing ?? false) && _isInitialGameSyncComplete && !_isBuying;
+            get => IsSynced && (Game?.IsGameRunning ?? false) && (!GameState?.IsDrawing ?? false) && _isInitialGameSyncComplete && !_isBuying && !string.IsNullOrEmpty(WalletAddress);
         }
         public bool IsSynced
         {
             get
             {
-                return AppStatus == AppStatus.Online && (Game?.IsInitialSyncFinished ?? false) && !_isWithdrawing;
+                return AppStatus == AppStatus.Online && (Game?.IsInitialSyncFinished ?? false) && !_isWithdrawing && string.IsNullOrEmpty(WalletAddress);
             }
         }
         public bool IsNotSynced
@@ -140,7 +139,9 @@ namespace ADALotto.ViewModels
             }
             set
             {
+                var oldComb = Combination;
                 Combination = new int[value];
+                for (var x = 0; x < oldComb?.Length; x++) Combination[x] = oldComb[x];
                 _digits = value;
             }
         }
