@@ -12,8 +12,8 @@ pool:
 steps:
 
   - script: |
-      dir
-      dir src/
+      cd src/
+      ls
       git submodule update --recursive --remote
     displayName: 'Submodule Update'
     
