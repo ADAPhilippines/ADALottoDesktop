@@ -158,6 +158,23 @@ namespace SAIB.CardanoWallet.NET
                         },
                         Address = address
                     });
+
+                    // First Fee Estimate
+                    var fee = await CardanoWalletAPI.EstimateTransactionFeeAsync(Id, payments, metadata);
+
+                    var selfPayment = payments[0];
+                    if (selfPayment != null && selfPayment.Amount != null)
+                        selfPayment.Amount.Quantity = selfPayment.Amount.Quantity - fee;
+
+                    // Second Fee Estimate
+                    // @TODO wtf am I doing
+
+                    fee = await CardanoWalletAPI.EstimateTransactionFeeAsync(Id, payments, metadata);
+
+                    if (selfPayment != null && selfPayment.Amount != null)
+                        selfPayment.Amount.Quantity = Balance.Total.Quantity - fee;
+
+                    return await CardanoWalletAPI.CreateTransactionAsync(Id, passphrase, payments, metadata);
                 }
                 else
                 {
@@ -179,29 +196,24 @@ namespace SAIB.CardanoWallet.NET
                         },
                         Address = selfAddress
                     });
+                    
+                    // First Fee Estimate
+                    var fee = await CardanoWalletAPI.EstimateTransactionFeeAsync(Id, payments, metadata);
+
+                    var selfPayment = payments[1];
+                    if (selfPayment != null && selfPayment.Amount != null)
+                        selfPayment.Amount.Quantity = selfPayment.Amount.Quantity - fee;
+
+                    // Second Fee Estimate
+                    // @TODO wtf am I doing
+
+                    fee = await CardanoWalletAPI.EstimateTransactionFeeAsync(Id, payments, metadata);
+
+                    if (selfPayment != null && selfPayment.Amount != null)
+                        selfPayment.Amount.Quantity = selfPayment.Amount.Quantity - fee;
+
+                    return await CardanoWalletAPI.CreateTransactionAsync(Id, passphrase, payments, metadata);
                 }
-                // First Fee Estimate
-                var fee = await CardanoWalletAPI.EstimateTransactionFeeAsync(Id, payments, metadata);
-
-                if (fee + lovelaceAmount > Balance.Total.Quantity)
-                    return null;
-
-                var selfPayment = payments[1];
-                if (selfPayment != null && selfPayment.Amount != null)
-                    selfPayment.Amount.Quantity = selfPayment.Amount.Quantity - fee;
-
-                // Second Fee Estimate
-                // @TODO wtf am I doing
-
-                fee = await CardanoWalletAPI.EstimateTransactionFeeAsync(Id, payments, metadata);
-
-                if (fee + lovelaceAmount > Balance.Total.Quantity)
-                    return null;
-
-                if (selfPayment != null && selfPayment.Amount != null)
-                    selfPayment.Amount.Quantity = selfPayment.Amount.Quantity - fee;
-
-                return await CardanoWalletAPI.CreateTransactionAsync(Id, passphrase, payments, metadata);
             }
             throw new Exception("Transaction failed.");
         }

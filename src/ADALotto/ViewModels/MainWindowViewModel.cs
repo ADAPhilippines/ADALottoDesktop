@@ -187,7 +187,7 @@ namespace ADALotto.ViewModels
 
                 if (File.Exists(daedalusShortcut))
                 {
-                    
+
                     // Get OS Temp Path
                     TempPath = Path.Combine(Path.GetTempPath(), "adalotto");
 
@@ -237,7 +237,7 @@ namespace ADALotto.ViewModels
                     CardanoNodeProcess.Start();
                     CardanoNodeProcess.BeginOutputReadLine();
                     CardanoNodeProcess.BeginErrorReadLine();
-                    
+
                     // Initialize Database
                     DB = new LiteDatabase(Path.Combine(DaedalusStateDir, "adalotto.db"));
                     GameStateCollection = DB?.GetCollection<ALGameState>("GameStates");
@@ -411,6 +411,9 @@ namespace ADALotto.ViewModels
         {
             Game = new ALGame("https://api.adaph.io/graphql/..", LottoOfficialWallet);
             GameState = GameStateCollection?.Count() > 0 ? GameStateCollection?.Query().First() : new ALGameState();
+
+            if (ALGame.Version != GameState?.Version) GameState = new ALGameState();
+
             if (GameState != null)
             {
                 Game.Start(GameState);
@@ -452,7 +455,7 @@ namespace ADALotto.ViewModels
             {
                 if (remainingRoundTimespan.TotalSeconds > 0)
                     remainingRoundTimespan = remainingRoundTimespan.Subtract(TimeSpan.FromSeconds(1));
-                if(remainingRoundTimespan.TotalSeconds < 0)
+                if (remainingRoundTimespan.TotalSeconds < 0)
                     remainingRoundTimespan = TimeSpan.FromSeconds(0);
                 RefreshRemainingRoundTimeDisplay();
                 await Task.Delay(1000);
@@ -549,10 +552,10 @@ namespace ADALotto.ViewModels
 
         public async Task BuyTicket(string passphrase)
         {
-            if (CurrentWallet != null && Combination != null)
+            if (CurrentWallet != null && Combination != null && Game != null && Game.GameState != null && Game.GameState.GameGenesisTxMeta != null)
             {
                 LoadingStartRequest?.Invoke(this, new LoadingStartEventArgs { Message = "Processing Ticket, please wait..." });
-                var txId = await CurrentWallet.SendAsync(_ticketPrice, LottoOfficialWallet, passphrase, new LottoTicket
+                var txId = await CurrentWallet.SendAsync(Game.GameState.GameGenesisTxMeta.TicketPrice, LottoOfficialWallet, passphrase, new LottoTicket
                 {
                     Combination = Combination
                 });
@@ -586,7 +589,7 @@ namespace ADALotto.ViewModels
             if (CurrentWallet != null && CurrentWallet.Balance.Total != null)
             {
                 LoadingStartRequest?.Invoke(this, new LoadingStartEventArgs { Message = "Processing Withdrawal, please wait..." });
-                
+
                 var txId = await CurrentWallet.SendAsync(CurrentWallet.Balance.Total.Quantity, walletAddress, passphrase);
 
                 if (!string.IsNullOrEmpty(txId))
@@ -615,7 +618,7 @@ namespace ADALotto.ViewModels
         {
             if (CurrentWallet != null && CurrentWallet.Balance.Total != null)
             {
-                var fee = await CurrentWallet.EstimateFee(_ticketPrice, LottoOfficialWallet);
+                var fee = await CurrentWallet.EstimateFee(CurrentWallet.Balance.Total.Quantity, LottoOfficialWallet);
 
                 if (fee > 0)
                     WithdrawalRequest?.Invoke(this, new ConfirmWithdrawalEventArgs { Fee = fee, Amount = CurrentWallet.Balance.Total.Quantity });
