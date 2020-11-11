@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using ADALotto.Events;
 using ADALotto.ViewModels;
 using ADALottoModels;
@@ -159,7 +160,7 @@ namespace ADALotto.Views
         {
             Dispatcher.UIThread.InvokeAsync(() =>
             {
-                MessageBox.ShowShow("Error", "Transaction failed, try again in a bit...", "Ok", this);
+                _ = MessageBox.ShowShow("Error", "Transaction failed, try again in a bit...", "Ok", this);
             });
         }
 
@@ -247,17 +248,19 @@ namespace ADALotto.Views
                         newLottoBox.TextAlignment = TextAlignment.Center;
                         newLottoBox.KeyUp += OnLottNumberInput;
                         newLottoBox.Tag = x;
+                        newLottoBox.IsReadOnly = true;
                         panelLottoNumbers.Children.Add(newLottoBox);
                         LottoBoxes.Add(newLottoBox);
                     }
                 }
             }
 
+            var combination = e?.Game?.Combination.ToArray();
+
             var isDrawing = e != null && e.GameState != null && e.GameState.IsDrawing && (ViewModel?.IsInitialGameSyncComplete ?? false) && e.GameState.IsRunning;
-            if (isDrawing && LottoBoxes != null && e != null && e.Game != null && ViewModel != null)
+            if (isDrawing && LottoBoxes != null && e != null && e.Game != null && ViewModel != null && combination != null)
             {
                 ViewModel.Combination = new int[digits];
-                var combination = e.Game.Combination.ToArray();
                 for (var x = 0; x < LottoBoxes.Count; x++)
                 {
                     var lottoBox = LottoBoxes[x];
@@ -265,74 +268,86 @@ namespace ADALotto.Views
                     lottoBox.Text = x > combination.Length - 1 ? "??" : combination[x].Number;
                 }
             }
-            else if (LottoBoxes != null && !isDrawing && ViewModel != null && ViewModel.Combination != null)
+
+            if (combination != null && combination.Length == digits && (e?.Game?.IsInitialSyncFinished ?? false))
             {
-                for (var x = 0; x < LottoBoxes.Count; x++)
+                _ = Dispatcher.UIThread.InvokeAsync(async () =>
                 {
-					ViewModel.Combination[x] = 0;
-                    var lottoBox = LottoBoxes[x];
-                    if (lottoBox.IsReadOnly)
+                    LottoBoxes.Last().Text = combination.Last().Number;
+                    if (LottoBoxes != null)
                     {
-                        lottoBox.IsReadOnly = false;
-                        lottoBox.Text = string.Empty;
+                        await Task.Delay(10 * 1000);
+                        foreach (var lottoBox in LottoBoxes)
+                        {
+                            if (lottoBox.IsReadOnly)
+                            {
+                                lottoBox.IsReadOnly = false;
+                                lottoBox.Text = string.Empty;
+                            }
+                        }
+                        e?.Game?.ClearCombination();
                     }
-                }
+                });
             }
         }
 
         private void OnLottNumberInput(object? sender, KeyEventArgs e)
         {
             var textBox = (sender as TextBox);
-            var tag = textBox?.Tag.ToString();
-            var numberIdx = -1;
+            e.Handled = textBox != null && (textBox.IsEnabled || textBox.IsReadOnly);
 
-            if (tag != null)
+            if (ViewModel != null && ViewModel.Game != null && ViewModel.GameState != null && !ViewModel.GameState.IsDrawing && ViewModel.Game.IsInitialSyncFinished)
             {
-                numberIdx = int.Parse(tag);
-            }
+                var tag = textBox?.Tag.ToString();
+                var numberIdx = -1;
 
-            if (textBox != null && textBox.Text != null)
-            {
-                if (LottoBoxes != null && LottoBoxes.Count > 1)
+                if (tag != null)
                 {
-                    if (textBox.Text.Length >= 2 && numberIdx < ViewModel?.Digits - 1)
-                    {
-                        LottoBoxes[numberIdx + 1].Focus();
-                        LottoBoxes[numberIdx + 1].SelectionStart = 2;
-                        LottoBoxes[numberIdx + 1].SelectionEnd = 2;
-                    }
-
-                    if (textBox.Text.Length <= 0 && e.Key == Key.Back && numberIdx > 0)
-                    {
-                        LottoBoxes[numberIdx - 1].Focus();
-                        LottoBoxes[numberIdx - 1].SelectionStart = 2;
-                        LottoBoxes[numberIdx - 1].SelectionEnd = 2;
-                    }
+                    numberIdx = int.Parse(tag);
                 }
 
-                if (textBox.Text.Length > 2 && e.Key != Key.Back)
+                if (textBox != null && textBox.Text != null)
                 {
-                    textBox.Text = textBox.Text.Substring(0, 2);
-                }
+                    if (LottoBoxes != null && LottoBoxes.Count > 1)
+                    {
+                        if (textBox.Text.Length >= 2 && numberIdx < ViewModel?.Digits - 1)
+                        {
+                            LottoBoxes[numberIdx + 1].Focus();
+                            LottoBoxes[numberIdx + 1].SelectionStart = 2;
+                            LottoBoxes[numberIdx + 1].SelectionEnd = 2;
+                        }
 
-                if (ViewModel != null && ViewModel.Combination != null)
-                {
-                    var isValid = int.TryParse(textBox.Text, out var n);
-                    if (isValid)
-                    {
-                        ViewModel.Combination[numberIdx] = n;
+                        if (textBox.Text.Length <= 0 && e.Key == Key.Back && numberIdx > 0)
+                        {
+                            LottoBoxes[numberIdx - 1].Focus();
+                            LottoBoxes[numberIdx - 1].SelectionStart = 2;
+                            LottoBoxes[numberIdx - 1].SelectionEnd = 2;
+                        }
                     }
-                    else
+
+                    if (textBox.Text.Length > 2 && e.Key != Key.Back)
                     {
-                        textBox.Text = string.Empty;
+                        textBox.Text = textBox.Text.Substring(0, 2);
+                    }
+
+                    if (ViewModel != null && ViewModel.Combination != null)
+                    {
+                        var isValid = int.TryParse(textBox.Text, out var n);
+                        if (isValid)
+                        {
+                            ViewModel.Combination[numberIdx] = n;
+                        }
+                        else
+                        {
+                            textBox.Text = string.Empty;
+                        }
                     }
                 }
-            }
-            else if (textBox?.Text == null && e.Key == Key.Back && LottoBoxes != null && LottoBoxes.Count > 1)
-            {
-                LottoBoxes[numberIdx - 1].Focus();
-                LottoBoxes[numberIdx - 1].SelectionStart = 2;
-                LottoBoxes[numberIdx - 1].SelectionEnd = 2;
+                else if (textBox?.Text == null && e.Key == Key.Back && LottoBoxes != null && LottoBoxes.Count > 1 && numberIdx > 0)
+                {
+                    LottoBoxes[numberIdx - 1].SelectionStart = 2;
+                    LottoBoxes[numberIdx - 1].SelectionEnd = 2;
+                }
             }
         }
 

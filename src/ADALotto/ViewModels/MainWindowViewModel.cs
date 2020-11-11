@@ -19,6 +19,8 @@ using SAIB.CardanoWallet.NET.Models;
 using ADALotto.ClientLib;
 using ADALottoModels;
 using Transaction = SAIB.CardanoWallet.NET.Models.Transaction;
+using LiteDB;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace ADALotto.ViewModels
 {
@@ -26,6 +28,8 @@ namespace ADALotto.ViewModels
     {
 
         #region Properties
+        public ALGame? Game { get; set; }
+        public ALGameState? GameState { get; set; }
         public string DaedalusInstallPath { get; private set; } = string.Empty;
         public string DaedalusStateDir { get; private set; } = string.Empty;
         public Process? CardanoNodeProcess { get; private set; }
@@ -116,7 +120,7 @@ namespace ADALotto.ViewModels
         {
             get
             {
-                return AppStatus == AppStatus.Online;
+                return AppStatus == AppStatus.Online && (Game?.IsInitialSyncFinished ?? false);
             }
         }
         public bool IsNotSynced
@@ -164,8 +168,8 @@ namespace ADALotto.ViewModels
         private string TempPath { get; set; } = string.Empty;
         private bool IsWalletStarted { get; set; }
         private CardanoWallet? CurrentWallet { get; set; }
-        private ALGame? Game { get; set; }
-        private ALGameState? GameState { get; set; }
+        private LiteDatabase? DB { get; set; }
+        private ILiteCollection<ALGameState>? GameStateCollection { get; set; }
         #endregion
 
         /// <summary>
@@ -175,22 +179,25 @@ namespace ADALotto.ViewModels
         {
             await Task.Run(() =>
             {
+
                 AppStatus = AppStatus.Connecting;
                 // Get Start Menu Daedalus Link
                 var startMenuPath = Environment.GetFolderPath(Environment.SpecialFolder.StartMenu);
                 var daedalusShortcut = Path.Combine(startMenuPath, "Programs", "Daedalus Mainnet", "Daedalus Mainnet.lnk");
 
                 if (File.Exists(daedalusShortcut))
-                { // Get Daedalus Install Dir from Link
+                {
+                    
+                    // Get OS Temp Path
+                    TempPath = Path.Combine(Path.GetTempPath(), "adalotto");
+
+                    // Get Daedalus Install Dir from Link
                     var shortcut = Shortcut.ReadFromFile(daedalusShortcut);
                     DaedalusInstallPath = shortcut.StringData.WorkingDir;
 
                     // Get Daedalus State Dir
                     var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
                     DaedalusStateDir = GetDaedalusStateDir().Replace("${APPDATA}", appData);
-
-                    // Get OS Temp Path
-                    TempPath = Path.Combine(Path.GetTempPath(), "adalotto");
 
                     // Prepare Config files for Cardano Node
                     PrepareConfigFiles();
@@ -230,6 +237,11 @@ namespace ADALotto.ViewModels
                     CardanoNodeProcess.Start();
                     CardanoNodeProcess.BeginOutputReadLine();
                     CardanoNodeProcess.BeginErrorReadLine();
+                    
+                    // Initialize Database
+                    DB = new LiteDatabase(Path.Combine(DaedalusStateDir, "adalotto.db"));
+                    GameStateCollection = DB?.GetCollection<ALGameState>("GameStates");
+
                     StartGame();
                 }
                 else
@@ -398,15 +410,18 @@ namespace ADALotto.ViewModels
         private void StartGame()
         {
             Game = new ALGame("https://api.adaph.io/graphql/..", LottoOfficialWallet);
-            GameState = new ALGameState();
-            Game.Start(GameState);
-            Game.Fetch += OnGameDataFetched;
-            Game.InitialSyncComplete += (o, e) =>
+            GameState = GameStateCollection?.Count() > 0 ? GameStateCollection?.Query().First() : new ALGameState();
+            if (GameState != null)
             {
-                _isInitialGameSyncComplete = true;
-                this.RaisePropertyChanged("IsPurchaseEnabled");
-            };
-            _ = StartGameTimeCountdownAsync();
+                Game.Start(GameState);
+                Game.Fetch += OnGameDataFetched;
+                Game.InitialSyncComplete += (o, e) =>
+                {
+                    _isInitialGameSyncComplete = true;
+                    this.RaisePropertyChanged("IsPurchaseEnabled");
+                };
+                _ = StartGameTimeCountdownAsync();
+            }
         }
 
         private void OnGameDataFetched(object? sender, EventArgs e)
@@ -414,6 +429,11 @@ namespace ADALotto.ViewModels
             this.RaisePropertyChanged("IsPurchaseEnabled");
             if (Game != null)
             {
+                // Save Data to DB
+                GameStateCollection?.DeleteAll();
+                GameStateCollection?.Insert(Game.GameState);
+
+                // Propagate Event
                 GamePrize = Math.Round((decimal)Game.GameState.CurrentPot / 1000000, 6);
                 remainingRoundTimespan = Game.RemainingRoundTime;
                 RefreshRemainingRoundTimeDisplay();
@@ -430,9 +450,10 @@ namespace ADALotto.ViewModels
         {
             while (true)
             {
-                if(remainingRoundTimespan.TotalSeconds > 0)
+                if (remainingRoundTimespan.TotalSeconds > 0)
                     remainingRoundTimespan = remainingRoundTimespan.Subtract(TimeSpan.FromSeconds(1));
-                    
+                if(remainingRoundTimespan.TotalSeconds < 0)
+                    remainingRoundTimespan = TimeSpan.FromSeconds(0);
                 RefreshRemainingRoundTimeDisplay();
                 await Task.Delay(1000);
             }
@@ -504,6 +525,7 @@ namespace ADALotto.ViewModels
 
         public void StopNode()
         {
+            DB?.Dispose();
             CardanoWalletAPI.StopWallet();
             CardanoNodeProcess?.Kill(true);
             AppStatus = AppStatus.Offline;
@@ -564,15 +586,8 @@ namespace ADALotto.ViewModels
             if (CurrentWallet != null && CurrentWallet.Balance.Total != null)
             {
                 LoadingStartRequest?.Invoke(this, new LoadingStartEventArgs { Message = "Processing Withdrawal, please wait..." });
-                var fee = await CurrentWallet.EstimateFee(
-                    CurrentWallet.Balance.Total.Quantity,
-                    walletAddress);
-
-                var newFee = await CurrentWallet.EstimateFee(
-                    CurrentWallet.Balance.Total.Quantity - fee,
-                    walletAddress);
-
-                var txId = await CurrentWallet.SendAsync(CurrentWallet.Balance.Total.Quantity - newFee, walletAddress, passphrase);
+                
+                var txId = await CurrentWallet.SendAsync(CurrentWallet.Balance.Total.Quantity, walletAddress, passphrase);
 
                 if (!string.IsNullOrEmpty(txId))
                 {
