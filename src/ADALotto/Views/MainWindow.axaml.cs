@@ -212,7 +212,7 @@ namespace ADALotto.Views
         {
             Dispatcher.UIThread.InvokeAsync(() =>
             {
-                _ = MessageBox.ShowAsync("Error", "Transaction failed, try again in a bit...", "Ok", this);
+                _ = MessageBox.ShowAsync("Error", "Transaction failed, balance in UTXOs might be to low...", "Ok", this);
             });
         }
 

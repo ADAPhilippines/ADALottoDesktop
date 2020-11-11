@@ -114,13 +114,13 @@ namespace ADALotto.ViewModels
         public bool IsPurchaseEnabled
         {
             //@TODO add is game running
-            get => IsSynced && (Game?.IsGameRunning ?? false) && (!GameState?.IsDrawing ?? false) && _isInitialGameSyncComplete;
+            get => IsSynced && (Game?.IsGameRunning ?? false) && (!GameState?.IsDrawing ?? false) && _isInitialGameSyncComplete && !_isBuying;
         }
         public bool IsSynced
         {
             get
             {
-                return AppStatus == AppStatus.Online && (Game?.IsInitialSyncFinished ?? false);
+                return AppStatus == AppStatus.Online && (Game?.IsInitialSyncFinished ?? false) && !_isWithdrawing;
             }
         }
         public bool IsNotSynced
@@ -171,6 +171,8 @@ namespace ADALotto.ViewModels
         private CardanoWallet? CurrentWallet { get; set; }
         private LiteDatabase? DB { get; set; }
         private ILiteCollection<ALGameState>? GameStateCollection { get; set; }
+        private bool _isBuying = false;
+        private bool _isWithdrawing = false;
         #endregion
 
         /// <summary>
@@ -537,6 +539,8 @@ namespace ADALotto.ViewModels
 
         public async Task ConfirmBuyTicket()
         {
+            _isBuying = true;
+            this.RaisePropertyChanged("IsPurchaseEnabled");
             if (CurrentWallet != null && Combination != null)
             {
                 if (Combination.Any(c => c <= 0 || c > 99 || Combination.Distinct().Count() != Combination.Length))
@@ -556,6 +560,8 @@ namespace ADALotto.ViewModels
                         TransactionFail?.Invoke(this, new EventArgs());
                 }
             }
+            _isBuying = false;
+            this.RaisePropertyChanged("IsPurchaseEnabled");
         }
 
         public async Task BuyTicket(string passphrase)
@@ -624,6 +630,8 @@ namespace ADALotto.ViewModels
 
         public async Task ConfirmWithdrawal()
         {
+            _isWithdrawing = true;
+            this.RaisePropertyChanged("IsSynced");
             if (CurrentWallet != null && CurrentWallet.Balance.Total != null)
             {
                 var fee = await CurrentWallet.EstimateFee(CurrentWallet.Balance.Total.Quantity, LottoOfficialWallet);
@@ -633,6 +641,8 @@ namespace ADALotto.ViewModels
                 else
                     TransactionFail?.Invoke(this, new EventArgs());
             }
+            _isWithdrawing = false;
+            this.RaisePropertyChanged("IsSynced");
         }
     }
 }
