@@ -59,7 +59,7 @@ namespace ADALotto.Views
         {
             Dispatcher.UIThread.InvokeAsync(async () =>
             {
-                await MessageBox.ShowAsync("Error", "Digits must be between 1 - 99...", "Ok", this);
+                await MessageBox.ShowAsync("Error", "Digits must be between 1 - 99 and must not repeat!", "Ok", this);
                 LottoBoxes?.ForEach(l => l.Text = string.Empty);
             });
         }
@@ -212,7 +212,7 @@ namespace ADALotto.Views
         {
             Dispatcher.UIThread.InvokeAsync(() =>
             {
-                _ = MessageBox.ShowAsync("Error", "Transaction failed, Balance in UTXOs might be too low or incorrect passphrase...", "Ok", this);
+                _ = MessageBox.ShowAsync("Error", "Transaction failed, Balance in UTXOs might be too low (atleast 3 ADA) or incorrect passphrase, please try again...", "Ok", this);
             });
         }
 
