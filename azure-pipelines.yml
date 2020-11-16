@@ -25,13 +25,13 @@ steps:
     displayName: 'Submodule Update'
     
   - script: |
-      rm src/ADALotto/bin/Release/net5.0/win-x64/publish/*.pdb
-    displayName: 'Remove PDB Files'
-
-  - script: |
       cd src/ADALotto
       dotnet publish -c Release -r win-x64 -p:PublishSingleFile=true --self-contained true
     displayName: 'Build ADALotto'
+
+  - script: |
+      rm src/ADALotto/bin/Release/net5.0/win-x64/publish/*.pdb
+    displayName: 'Remove PDB Files'
 
   - task: ArchiveFiles@2
     inputs:
