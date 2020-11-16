@@ -7,10 +7,6 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
-using MessageBox.Avalonia;
-using MessageBox.Avalonia.DTO;
-using MessageBox.Avalonia.Enums;
-using MessageBoxIcons = MessageBox.Avalonia.Enums.Icon;
 
 namespace ADALotto.Views
 {
