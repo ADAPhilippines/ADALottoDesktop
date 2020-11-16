@@ -31,7 +31,7 @@ steps:
 
   - task: ArchiveFiles@2
     inputs:
-      rootFolderOrFile: 'src\ADALotto\bin\Release\netcoreapp3.1\win-x64\publish\ADALotto.exe'
+      rootFolderOrFile: 'src\ADALotto\bin\Release\net5.0\win-x64\publish\'
       includeRootFolder: false
       archiveType: 'zip'
       archiveFile: '$(Build.ArtifactStagingDirectory)/ADALotto.zip'
