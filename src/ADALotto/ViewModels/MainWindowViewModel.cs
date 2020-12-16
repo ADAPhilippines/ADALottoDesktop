@@ -414,21 +414,29 @@ namespace ADALotto.ViewModels
         private void StartGame()
         {
             Game = new ALGame("https://api.adaph.io/graphql/..", LottoOfficialWallet);
-            GameState = GameStateCollection?.Count() > 0 ? GameStateCollection?.Query().First() : new ALGameState();
 
-            if (ALGame.Version != GameState?.Version) GameState = new ALGameState();
+			try
+			{
+				GameState = GameStateCollection?.Count() > 0 ? GameStateCollection?.Query().First() : new ALGameState();
+			}
+			catch
+			{
+				Console.WriteLine("Can't read database.");
+			}
 
-            if (GameState != null)
-            {
-                Game.Start(GameState);
-                Game.Fetch += OnGameDataFetched;
-                Game.InitialSyncComplete += (o, e) =>
-                {
-                    _isInitialGameSyncComplete = true;
-                    this.RaisePropertyChanged("IsPurchaseEnabled");
-                };
-                _ = StartGameTimeCountdownAsync();
-            }
+			if (ALGame.Version != GameState?.Version) GameState = new ALGameState();
+
+			if (GameState != null)
+			{
+				Game.Start(GameState);
+				Game.Fetch += OnGameDataFetched;
+				Game.InitialSyncComplete += (o, e) =>
+				{
+					_isInitialGameSyncComplete = true;
+					this.RaisePropertyChanged("IsPurchaseEnabled");
+				};
+				_ = StartGameTimeCountdownAsync();
+			}
         }
 
         private void OnGameDataFetched(object? sender, EventArgs e)
